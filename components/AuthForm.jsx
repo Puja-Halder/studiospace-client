@@ -5,7 +5,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Aperture, ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import {
+  Aperture,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  User,
+} from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function AuthForm({ mode }) {
   const router = useRouter();
@@ -13,6 +22,8 @@ export default function AuthForm({ mode }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,7 +40,7 @@ export default function AuthForm({ mode }) {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (isRegister) {
@@ -54,11 +65,50 @@ export default function AuthForm({ mode }) {
       }
     }
 
-    toast.info("Authentication will be connected in a later step.");
+    setIsLoading(true);
+
+    try {
+      let result;
+
+      if (isRegister) {
+        result = await authClient.signUp.email({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+        });
+      } else {
+        result = await authClient.signIn.email({
+          email: formData.email.trim(),
+          password: formData.password,
+        });
+      }
+
+      if (result.error) {
+        toast.error(
+          result.error.message || "Authentication failed. Please try again."
+        );
+        return;
+      }
+
+      toast.success(
+        isRegister
+          ? "Your account has been created successfully!"
+          : "You have signed in successfully!"
+      );
+
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error.message || "Something went wrong. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignIn = () => {
-    toast.info("Google sign-in will be connected in a later step.");
+    toast.info("Google sign-in will be configured in a later step.");
   };
 
   return (
@@ -169,7 +219,9 @@ export default function AuthForm({ mode }) {
                   placeholder="Enter your password"
                   required
                   minLength={6}
-                  autoComplete={isRegister ? "new-password" : "current-password"}
+                  autoComplete={
+                    isRegister ? "new-password" : "current-password"
+                  }
                   className="w-full rounded-xl border border-gray-200 py-3.5 pl-12 pr-12 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                 />
 
@@ -185,7 +237,8 @@ export default function AuthForm({ mode }) {
 
               {isRegister && (
                 <p className="mt-2 text-xs text-gray-500">
-                  At least 6 characters, including uppercase and lowercase letters.
+                  At least 6 characters, including uppercase and lowercase
+                  letters.
                 </p>
               )}
             </div>
@@ -241,10 +294,16 @@ export default function AuthForm({ mode }) {
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-4 font-semibold text-white transition hover:bg-violet-700"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-4 font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isRegister ? "Create Account" : "Sign In"}
-              <ArrowRight size={18} />
+              {isLoading
+                ? "Please wait..."
+                : isRegister
+                  ? "Create Account"
+                  : "Sign In"}
+
+              {!isLoading && <ArrowRight size={18} />}
             </button>
           </form>
 
