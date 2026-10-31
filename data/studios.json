@@ -8,7 +8,11 @@
     "price": 1200,
     "rating": 4.9,
     "reviews": 28,
-    "image": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=85"
+    "image": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85",
+    "description": "The Creative Loft is a bright and modern creative space designed for photography sessions, content creation, and professional projects. Enjoy a comfortable environment with plenty of room to bring your ideas to life.",
+    "facilities": ["Professional Lighting", "Air Conditioning", "Wi-Fi", "Changing Room", "Parking"],
+    "host": "StudioSpace Host",
+    "capacity": 10
   },
   {
     "id": "studio-2",
@@ -18,7 +22,11 @@
     "price": 900,
     "rating": 4.8,
     "reviews": 21,
-    "image": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=85"
+    "image": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85",
+    "description": "Modern Workspace offers a productive and inspiring environment for freelancers, designers, and creative teams. Work comfortably in a professional setting with essential workspace facilities.",
+    "facilities": ["High-Speed Wi-Fi", "Air Conditioning", "Meeting Table", "Power Outlets", "Refreshments"],
+    "host": "Workspace Owner",
+    "capacity": 8
   },
   {
     "id": "studio-3",
@@ -28,7 +36,11 @@
     "price": 1500,
     "rating": 5.0,
     "reviews": 34,
-    "image": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=85"
+    "image": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=85",
+    "description": "The White Room is a versatile photography space with a clean and minimal environment. It is suitable for portraits, product photography, creative campaigns, and personal photoshoots.",
+    "facilities": ["Studio Lighting", "White Background", "Air Conditioning", "Wi-Fi", "Changing Room"],
+    "host": "Photography Studio Owner",
+    "capacity": 12
   },
   {
     "id": "studio-4",
@@ -38,7 +50,11 @@
     "price": 1800,
     "rating": 4.7,
     "reviews": 19,
-    "image": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=85"
+    "image": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85",
+    "description": "Urban Creative Space is a flexible venue for creative workshops, small exhibitions, team gatherings, and community events. Its open layout makes it easy to arrange the space for different activities.",
+    "facilities": ["Open Floor Area", "Projector", "Sound System", "Air Conditioning", "Wi-Fi"],
+    "host": "Urban Space Owner",
+    "capacity": 30
   },
   {
     "id": "studio-5",
@@ -48,7 +64,11 @@
     "price": 800,
     "rating": 4.8,
     "reviews": 16,
-    "image": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=85"
+    "image": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85",
+    "description": "The Focus Studio provides a quiet and comfortable environment for meetings, planning sessions, interviews, and collaborative work. It is designed to help small teams stay focused and productive.",
+    "facilities": ["Meeting Table", "Wi-Fi", "Air Conditioning", "Whiteboard", "Display Screen"],
+    "host": "Focus Studio Owner",
+    "capacity": 6
   },
   {
     "id": "studio-6",
@@ -58,6 +78,10 @@
     "price": 1300,
     "rating": 4.9,
     "reviews": 25,
-    "image": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=85"
+    "image": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=85",
+    "description": "Lightbox Studio is a creative photography environment suitable for portraits, product shoots, and content production. The space offers a simple and comfortable setup for creative projects.",
+    "facilities": ["Photography Lighting", "Background Setup", "Wi-Fi", "Air Conditioning", "Parking"],
+    "host": "Lightbox Studio Owner",
+    "capacity": 10
   }
 ]
