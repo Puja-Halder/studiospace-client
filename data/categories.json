@@ -1,0 +1,32 @@
+
+[
+  {
+    "id": "photography",
+    "name": "Photography Studio",
+    "description": "Professional spaces for photoshoots and creative photography.",
+    "icon": "camera",
+    "spaces": "Explore photography spaces"
+  },
+  {
+    "id": "workspace",
+    "name": "Creative Workspace",
+    "description": "Inspiring environments for designing, creating, and collaborating.",
+    "icon": "palette",
+    "spaces": "Explore creative workspaces"
+  },
+  {
+    "id": "event",
+    "name": "Event Space",
+    "description": "Unique venues for workshops, exhibitions, and special events.",
+    "icon": "calendar",
+    "spaces": "Explore event venues"
+  },
+  {
+    "id": "meeting",
+    "name": "Meeting Space",
+    "description": "Comfortable rooms for meetings, discussions, and teamwork.",
+    "icon": "users",
+    "spaces": "Explore meeting spaces"
+  }
+]
+
