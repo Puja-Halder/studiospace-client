@@ -1,7 +1,8 @@
 
 import HeroSlider from "@/components/HeroSlider";
-import FeaturedStudios from "@/components/FeaturedStudios";
 import StudioCategories from "@/components/StudioCategories";
+import FeaturedStudios from "@/components/FeaturedStudios";
+import HowBookingWorks from "@/components/HowBookingWorks";
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
       <HeroSlider />
       <StudioCategories />
       <FeaturedStudios />
+      <HowBookingWorks />
     </main>
   );
 }
