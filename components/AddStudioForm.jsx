@@ -3,16 +3,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, LoaderCircle, Plus, X } from "lucide-react";
-import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-
-const categories = [
-  { value: "photography", label: "Photography Studio" },
-  { value: "workspace", label: "Creative Workspace" },
-  { value: "event", label: "Event Space" },
-  { value: "meeting", label: "Meeting Space" },
-];
+import { toast } from "sonner";
+import { Upload, X, Loader2 } from "lucide-react";
 
 const initialForm = {
   name: "",
@@ -30,71 +23,71 @@ export default function AddStudioForm() {
   const { data: session, isPending } = authClient.useSession();
 
   const [form, setForm] = useState(initialForm);
-  const [images, setImages] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    setForm((previous) => ({
-      ...previous,
+    setForm((previousForm) => ({
+      ...previousForm,
       [name]: value,
     }));
   };
 
   const handleImageChange = (event) => {
-    const selectedFiles = Array.from(event.target.files || []);
+    const files = Array.from(event.target.files || []);
 
-    if (selectedFiles.length + images.length > 5) {
+    if (files.length + selectedImages.length > 5) {
       toast.error("You can upload a maximum of 5 images.");
       event.target.value = "";
       return;
     }
 
-    const invalidFile = selectedFiles.find(
-      (file) =>
-        !file.type.startsWith("image/") ||
-        file.size > 5 * 1024 * 1024
-    );
+    const validFiles = files.filter((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not a valid image.`);
+        return false;
+      }
 
-    if (invalidFile) {
-      toast.error("Choose image files smaller than 5 MB each.");
-      event.target.value = "";
-      return;
-    }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds the 5 MB limit.`);
+        return false;
+      }
 
-    setImages((previous) => [...previous, ...selectedFiles]);
+      return true;
+    });
+
+    setSelectedImages((previousImages) => [
+      ...previousImages,
+      ...validFiles,
+    ]);
+
     event.target.value = "";
   };
 
   const removeImage = (index) => {
-    setImages((previous) =>
-      previous.filter((_, imageIndex) => imageIndex !== index)
+    setSelectedImages((previousImages) =>
+      previousImages.filter((_, imageIndex) => imageIndex !== index)
     );
   };
 
-  const uploadImage = async (image) => {
-    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
-
-    if (!apiKey) {
-      throw new Error("ImgBB API key is missing.");
-    }
-
-    const imageData = new FormData();
-    imageData.append("image", image);
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
 
     const response = await fetch(
-      `https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`,
+      `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
       {
         method: "POST",
-        body: imageData,
+        body: formData,
       }
     );
 
     const result = await response.json();
 
     if (!response.ok || !result.success) {
-      throw new Error("Image upload failed. Please try again.");
+      throw new Error(result.error?.message || "Image upload failed.");
     }
 
     return result.data.url;
@@ -104,31 +97,60 @@ export default function AddStudioForm() {
     event.preventDefault();
 
     if (!session?.user) {
-      toast.error("Please log in before adding a studio.");
+      toast.error("Please sign in before listing a studio.");
       router.push("/login");
       return;
     }
 
-    if (images.length === 0) {
-      toast.error("Please upload at least one studio image.");
+    if (selectedImages.length === 0) {
+      toast.error("Please select at least one studio image.");
+      return;
+    }
+
+    if (
+      !form.name.trim() ||
+      !form.description.trim() ||
+      !form.category ||
+      !form.city.trim() ||
+      !form.address.trim() ||
+      !form.pricePerHour ||
+      !form.capacity
+    ) {
+      toast.error("Please provide all required studio information.");
+      return;
+    }
+
+    if (
+      !Number.isFinite(Number(form.pricePerHour)) ||
+      Number(form.pricePerHour) < 1
+    ) {
+      toast.error("Please enter a valid hourly price.");
+      return;
+    }
+
+    if (
+      !Number.isInteger(Number(form.capacity)) ||
+      Number(form.capacity) < 1
+    ) {
+      toast.error("Please enter a valid studio capacity.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      toast.info("Uploading studio images...");
+
       const uploadedImages = await Promise.all(
-        images.map((image) => uploadImage(image))
+        selectedImages.map((image) => uploadImage(image))
       );
 
       const studioData = {
         name: form.name.trim(),
         description: form.description.trim(),
         category: form.category,
-        location: {
-          city: form.city.trim(),
-          address: form.address.trim(),
-        },
+        city: form.city.trim(),
+        address: form.address.trim(),
         pricePerHour: Number(form.pricePerHour),
         capacity: Number(form.capacity),
         facilities: form.facilities
@@ -137,6 +159,8 @@ export default function AddStudioForm() {
           .filter(Boolean),
         images: uploadedImages,
       };
+
+      console.log("Studio data before sending:", studioData);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/studios`,
@@ -152,15 +176,23 @@ export default function AddStudioForm() {
 
       const result = await response.json();
 
+      console.log("Backend response:", result);
+
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create studio.");
+        throw new Error(
+          result.message || "Failed to create your studio listing."
+        );
       }
 
-      toast.success("Studio listed successfully!");
+      toast.success("Your studio has been listed successfully!");
+
       setForm(initialForm);
-      setImages([]);
-      router.push("/");
+      setSelectedImages([]);
+
+      router.push("/my-listings");
+      router.refresh();
     } catch (error) {
+      console.error("Studio submission error:", error);
       toast.error(error.message || "Something went wrong.");
     } finally {
       setIsSubmitting(false);
@@ -169,247 +201,230 @@ export default function AddStudioForm() {
 
   if (isPending) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <LoaderCircle className="h-8 w-8 animate-spin text-indigo-600" />
+      <div className="flex min-h-[300px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
       </div>
     );
   }
 
   if (!session?.user) {
     return (
-      <section className="mx-auto max-w-2xl px-5 py-24 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Login Required
-        </h1>
+      <div className="mx-auto max-w-2xl rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+        <h2 className="text-2xl font-bold text-gray-900">
+          Sign in to become a host
+        </h2>
         <p className="mt-3 text-gray-600">
-          Please log in to list your creative studio.
+          Please sign in to add your creative space to StudioSpace.
         </p>
         <button
+          type="button"
           onClick={() => router.push("/login")}
-          className="mt-6 rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700"
+          className="mt-6 rounded-lg bg-black px-6 py-3 font-semibold text-white transition hover:bg-gray-800"
         >
-          Go to Login
+          Sign In
         </button>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="bg-gray-50 px-5 py-14">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-8">
-          <p className="font-semibold text-indigo-600">
-            Become a Host
-          </p>
-          <h1 className="mt-2 text-3xl font-bold text-gray-900">
-            List Your Studio
-          </h1>
-          <p className="mt-3 text-gray-600">
-            Share your creative space with people looking for the perfect place to work and create.
-          </p>
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto max-w-3xl space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+    >
+      <div>
+        <label className="mb-2 block font-semibold text-gray-800">
+          Studio Name *
+        </label>
+        <input
+          type="text"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          placeholder="e.g. Modern Creative Workspace"
+          required
+          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block font-semibold text-gray-800">
+          Description *
+        </label>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          rows={5}
+          placeholder="Describe your studio and what makes it special..."
+          required
+          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block font-semibold text-gray-800">
+          Studio Category *
+        </label>
+        <select
+          name="category"
+          value={form.category}
+          onChange={handleChange}
+          required
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-black"
+        >
+          <option value="">Select a category</option>
+          <option value="photography">Photography Studio</option>
+          <option value="workspace">Creative Workspace</option>
+          <option value="event">Event Space</option>
+          <option value="meeting">Meeting Space</option>
+        </select>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <label className="mb-2 block font-semibold text-gray-800">
+            City *
+          </label>
+          <input
+            type="text"
+            name="city"
+            value={form.city}
+            onChange={handleChange}
+            placeholder="e.g. Dhaka"
+            required
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+          />
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
-        >
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Studio Name
-            </label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              maxLength={100}
-              placeholder="Enter your studio name"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              required
-              rows={5}
-              maxLength={2000}
-              placeholder="Describe your studio and what makes it special"
-              className="w-full resize-y rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Studio Category
-            </label>
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-indigo-500"
-            >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                City
-              </label>
-              <input
-                name="city"
-                value={form.city}
-                onChange={handleChange}
-                required
-                placeholder="Enter city"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Full Address
-              </label>
-              <input
-                name="address"
-                value={form.address}
-                onChange={handleChange}
-                required
-                placeholder="Enter studio address"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Price Per Hour
-              </label>
-              <input
-                type="number"
-                name="pricePerHour"
-                value={form.pricePerHour}
-                onChange={handleChange}
-                required
-                min="1"
-                placeholder="e.g. 1500"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Maximum Capacity
-              </label>
-              <input
-                type="number"
-                name="capacity"
-                value={form.capacity}
-                onChange={handleChange}
-                required
-                min="1"
-                step="1"
-                placeholder="e.g. 10"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Facilities
-            </label>
-            <input
-              name="facilities"
-              value={form.facilities}
-              onChange={handleChange}
-              placeholder="Wi-Fi, Air Conditioning, Lighting"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
-            />
-            <p className="mt-2 text-xs text-gray-500">
-              Separate each facility with a comma.
-            </p>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Studio Images
-            </label>
-
-            <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 px-5 py-8 text-center transition hover:border-indigo-500 hover:bg-indigo-50">
-              <Upload className="mb-3 h-8 w-8 text-indigo-600" />
-              <span className="font-semibold text-gray-700">
-                Click to upload studio images
-              </span>
-              <span className="mt-2 text-xs text-gray-500">
-                Maximum 5 images, 5 MB each
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
-
-            {images.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {images.map((image, index) => (
-                  <div
-                    key={`${image.name}-${index}`}
-                    className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
-                  >
-                    <span className="truncate pr-3 text-sm text-gray-700">
-                      {image.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="shrink-0 rounded-md p-2 text-red-500 hover:bg-red-50"
-                      aria-label={`Remove ${image.name}`}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 py-3.5 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSubmitting ? (
-              <>
-                <LoaderCircle className="h-5 w-5 animate-spin" />
-                Uploading and Creating...
-              </>
-            ) : (
-              <>
-                <Plus className="h-5 w-5" />
-                List My Studio
-              </>
-            )}
-          </button>
-        </form>
+        <div>
+          <label className="mb-2 block font-semibold text-gray-800">
+            Full Address *
+          </label>
+          <input
+            type="text"
+            name="address"
+            value={form.address}
+            onChange={handleChange}
+            placeholder="e.g. Banani, Road 11"
+            required
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+          />
+        </div>
       </div>
-    </section>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <label className="mb-2 block font-semibold text-gray-800">
+            Price Per Hour (৳) *
+          </label>
+          <input
+            type="number"
+            name="pricePerHour"
+            value={form.pricePerHour}
+            onChange={handleChange}
+            min="1"
+            placeholder="e.g. 1200"
+            required
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block font-semibold text-gray-800">
+            Capacity *
+          </label>
+          <input
+            type="number"
+            name="capacity"
+            value={form.capacity}
+            onChange={handleChange}
+            min="1"
+            step="1"
+            placeholder="e.g. 10"
+            required
+            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-2 block font-semibold text-gray-800">
+          Facilities
+        </label>
+        <input
+          type="text"
+          name="facilities"
+          value={form.facilities}
+          onChange={handleChange}
+          placeholder="Wi-Fi, Air Conditioning, Projector, Whiteboard"
+          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+        />
+        <p className="mt-2 text-sm text-gray-500">
+          Separate each facility with a comma.
+        </p>
+      </div>
+
+      <div>
+        <label className="mb-2 block font-semibold text-gray-800">
+          Studio Images * (1–5 images, maximum 5 MB each)
+        </label>
+
+        <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 p-8 text-center transition hover:border-gray-500">
+          <Upload className="mb-3 h-8 w-8 text-gray-500" />
+          <span className="font-medium text-gray-800">
+            Click to upload images
+          </span>
+          <span className="mt-1 text-sm text-gray-500">
+            PNG, JPG or JPEG
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageChange}
+            className="hidden"
+          />
+        </label>
+
+        {selectedImages.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {selectedImages.map((image, index) => (
+              <div
+                key={`${image.name}-${index}`}
+                className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+              >
+                <span className="truncate text-sm text-gray-700">
+                  {image.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="ml-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-red-600"
+                  aria-label={`Remove ${image.name}`}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-black px-6 py-4 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Uploading and Listing...
+          </>
+        ) : (
+          "List My Studio"
+        )}
+      </button>
+    </form>
   );
 }
