@@ -2,7 +2,6 @@
 import Link from "next/link";
 import {
   ArrowLeft,
-  ArrowRight,
   MapPin,
   Star,
   Users,
@@ -10,6 +9,7 @@ import {
   ShieldCheck,
   Clock,
 } from "lucide-react";
+import BookingForm from "@/components/BookingForm";
 
 export default function StudioDetails({ studio }) {
   const price = Number(studio.pricePerHour || 0);
@@ -200,45 +200,12 @@ export default function StudioDetails({ studio }) {
               </p>
 
               <p className="mt-1 text-sm text-gray-500">
-                No booking has been made yet.
+                Choose your preferred booking time.
               </p>
 
               <div className="my-6 border-t border-gray-100" />
 
-              <div className="space-y-4 text-sm text-gray-600">
-                <div className="flex justify-between gap-3">
-                  <span>Studio</span>
-                  <span className="text-right font-semibold text-gray-900">
-                    {studio.name}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-3">
-                  <span>Category</span>
-                  <span className="text-right font-semibold text-gray-900">
-                    {categoryName[studio.category] || studio.category}
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-3">
-                  <span>Capacity</span>
-                  <span className="font-semibold text-gray-900">
-                    {studio.capacity} people
-                  </span>
-                </div>
-              </div>
-
-              <Link
-                href="/login"
-                className="mt-7 flex w-full items-center justify-center gap-2 rounded-full bg-violet-600 px-5 py-4 text-sm font-semibold text-white transition hover:bg-violet-700"
-              >
-                Sign In to Book
-                <ArrowRight size={18} />
-              </Link>
-
-              <p className="mt-4 text-center text-xs leading-6 text-gray-500">
-                Sign in to continue with your booking.
-              </p>
+              <BookingForm studio={studio} />
             </div>
           </aside>
         </div>
