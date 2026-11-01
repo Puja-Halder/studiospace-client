@@ -149,20 +149,26 @@ export default function FeaturedStudios() {
                   </p>
 
                   <div className="mt-5 flex items-center justify-between border-t pt-4">
-                    <div>
-                      <p className="text-xl font-bold text-primary">
-                        ৳{Number(studio.pricePerHour).toLocaleString("en-BD")}
-                        <span className="text-sm font-normal text-muted-foreground">
-                          /hour
-                        </span>
-                      </p>
-                    </div>
+                    <p className="text-xl font-bold text-primary">
+                      ৳{Number(studio.pricePerHour).toLocaleString("en-BD")}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        /hour
+                      </span>
+                    </p>
 
                     <p className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Users size={16} />
                       {studio.capacity} guests
                     </p>
                   </div>
+
+                  <Link
+                    href={`/studio/${studio._id}`}
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                  >
+                    View Details
+                    <ArrowRight size={17} />
+                  </Link>
                 </div>
               </article>
             ))}
