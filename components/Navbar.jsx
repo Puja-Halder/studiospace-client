@@ -57,15 +57,10 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 shadow-sm backdrop-blur">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          onClick={closeMenu}
-          className="flex items-center gap-2"
-        >
+        <Link href="/" onClick={closeMenu} className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Aperture size={23} />
           </div>
-
           <span className="text-xl font-bold tracking-tight">
             Studio<span className="text-primary">Space</span>
           </span>
@@ -104,6 +99,14 @@ export default function Navbar() {
                 My Listings
               </Link>
 
+              <Link
+                href="/host-bookings"
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-primary"
+              >
+                <LayoutDashboard size={17} />
+                Host Dashboard
+              </Link>
+
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -113,20 +116,16 @@ export default function Navbar() {
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
                     {userInitial}
                   </div>
-
                   <span className="max-w-28 truncate text-sm font-medium">
                     {userName}
                   </span>
-
                   <ChevronDown size={16} />
                 </button>
 
                 {isProfileOpen && (
                   <div className="absolute right-0 top-full mt-3 w-52 overflow-hidden rounded-xl border bg-background p-2 shadow-lg">
                     <div className="border-b px-3 py-2">
-                      <p className="truncate text-sm font-semibold">
-                        {userName}
-                      </p>
+                      <p className="truncate text-sm font-semibold">{userName}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {session.user.email}
                       </p>
@@ -160,7 +159,6 @@ export default function Navbar() {
               >
                 Sign In
               </Link>
-
               <Link
                 href="/register"
                 className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
@@ -205,11 +203,8 @@ export default function Navbar() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground">
                       {userInitial}
                     </div>
-
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">
-                        {userName}
-                      </p>
+                      <p className="truncate text-sm font-semibold">{userName}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {session.user.email}
                       </p>
@@ -234,6 +229,15 @@ export default function Navbar() {
                     My Listings
                   </Link>
 
+                  <Link
+                    href="/host-bookings"
+                    onClick={closeMenu}
+                    className="flex items-center gap-2 text-sm font-medium"
+                  >
+                    <LayoutDashboard size={17} />
+                    Host Dashboard
+                  </Link>
+
                   <button
                     onClick={handleSignOut}
                     className="flex items-center gap-2 text-left text-sm font-medium text-destructive"
@@ -251,7 +255,6 @@ export default function Navbar() {
                   >
                     Sign In
                   </Link>
-
                   <Link
                     href="/register"
                     onClick={closeMenu}
