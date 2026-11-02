@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -25,7 +24,6 @@ const categoryNames = Object.fromEntries(
 
 export default function ExploreSpaces() {
   const searchParams = useSearchParams();
-
   const initialCategoryId = searchParams.get("category") || "all";
 
   const [studios, setStudios] = useState([]);
@@ -34,7 +32,14 @@ export default function ExploreSpaces() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState(initialCategoryId);
+  const [previousCategory, setPreviousCategory] =
+    useState(initialCategoryId);
   const [sortOrder, setSortOrder] = useState("default");
+
+  if (initialCategoryId !== previousCategory) {
+    setPreviousCategory(initialCategoryId);
+    setSelectedCategory(initialCategoryId);
+  }
 
   useEffect(() => {
     const fetchStudios = async () => {
@@ -61,15 +66,9 @@ export default function ExploreSpaces() {
     fetchStudios();
   }, []);
 
-  useEffect(() => {
-    const categoryFromUrl = searchParams.get("category") || "all";
-    setSelectedCategory(categoryFromUrl);
-  }, [searchParams]);
-
   const filteredStudios = studios
     .filter((studio) => {
       const searchValue = searchTerm.trim().toLowerCase();
-
       const studioName = (studio.name || "").toLowerCase();
 
       const studioLocation = [

@@ -231,7 +231,7 @@ export default function StudioDetails({ studio }) {
 
                 <p className="mt-2 text-xs leading-5 text-gray-600">
                   This deposit is separate from the hourly rental price.
-                  Its return is subject to the host's agreed deposit policy.
+                  Its return is subject to the host&apos;s agreed deposit policy.
                 </p>
               </div>
 

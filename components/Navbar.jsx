@@ -1,9 +1,9 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   Aperture,
   Menu,
@@ -14,15 +14,28 @@ import {
   LogOut,
   CalendarDays,
   LayoutDashboard,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  const mounted = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
+
   const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const { data: session, isPending } = authClient.useSession();
 
@@ -33,6 +46,10 @@ export default function Navbar() {
     setIsProfileOpen(false);
   };
 
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
   const handleSignOut = async () => {
     try {
       await authClient.signOut();
@@ -40,7 +57,7 @@ export default function Navbar() {
       toast.success("Signed out successfully.");
       router.push("/");
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("Unable to sign out. Please try again.");
     }
   };
@@ -54,6 +71,24 @@ export default function Navbar() {
     { name: "Become a Host", href: "/add-studio" },
   ];
 
+  const renderThemeIcon = () => {
+    if (!mounted) {
+      return <span className="h-[19px] w-[19px]" />;
+    }
+
+    return resolvedTheme === "dark" ? (
+      <Sun size={19} />
+    ) : (
+      <Moon size={19} />
+    );
+  };
+
+  const themeButtonLabel = mounted
+    ? resolvedTheme === "dark"
+      ? "Switch to light mode"
+      : "Switch to dark mode"
+    : "Change theme";
+
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 shadow-sm backdrop-blur">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -61,6 +96,7 @@ export default function Navbar() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Aperture size={23} />
           </div>
+
           <span className="text-xl font-bold tracking-tight">
             Studio<span className="text-primary">Space</span>
           </span>
@@ -79,6 +115,17 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            disabled={!mounted}
+            aria-label={themeButtonLabel}
+            title={themeButtonLabel}
+            className="flex h-10 w-10 items-center justify-center rounded-full border transition hover:bg-muted disabled:opacity-50"
+          >
+            {renderThemeIcon()}
+          </button>
+
           {isPending ? (
             <div className="h-10 w-28 animate-pulse rounded-lg bg-muted" />
           ) : isLoggedIn ? (
@@ -109,6 +156,7 @@ export default function Navbar() {
 
               <div className="relative">
                 <button
+                  type="button"
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center gap-2 rounded-full border px-3 py-2 transition hover:bg-muted"
                   aria-expanded={isProfileOpen}
@@ -116,16 +164,21 @@ export default function Navbar() {
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
                     {userInitial}
                   </div>
+
                   <span className="max-w-28 truncate text-sm font-medium">
                     {userName}
                   </span>
+
                   <ChevronDown size={16} />
                 </button>
 
                 {isProfileOpen && (
                   <div className="absolute right-0 top-full mt-3 w-52 overflow-hidden rounded-xl border bg-background p-2 shadow-lg">
                     <div className="border-b px-3 py-2">
-                      <p className="truncate text-sm font-semibold">{userName}</p>
+                      <p className="truncate text-sm font-semibold">
+                        {userName}
+                      </p>
+
                       <p className="truncate text-xs text-muted-foreground">
                         {session.user.email}
                       </p>
@@ -141,6 +194,7 @@ export default function Navbar() {
                     </Link>
 
                     <button
+                      type="button"
                       onClick={handleSignOut}
                       className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-destructive transition hover:bg-muted"
                     >
@@ -159,6 +213,7 @@ export default function Navbar() {
               >
                 Sign In
               </Link>
+
               <Link
                 href="/register"
                 className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
@@ -170,14 +225,28 @@ export default function Navbar() {
           )}
         </div>
 
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="rounded-lg p-2 transition hover:bg-muted md:hidden"
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMenuOpen}
-        >
-          {isMenuOpen ? <X size={25} /> : <Menu size={25} />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            disabled={!mounted}
+            aria-label={themeButtonLabel}
+            title={themeButtonLabel}
+            className="flex h-10 w-10 items-center justify-center rounded-full border transition hover:bg-muted disabled:opacity-50"
+          >
+            {renderThemeIcon()}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="rounded-lg p-2 transition hover:bg-muted"
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? <X size={25} /> : <Menu size={25} />}
+          </button>
+        </div>
       </nav>
 
       {isMenuOpen && (
@@ -203,8 +272,12 @@ export default function Navbar() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground">
                       {userInitial}
                     </div>
+
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{userName}</p>
+                      <p className="truncate text-sm font-semibold">
+                        {userName}
+                      </p>
+
                       <p className="truncate text-xs text-muted-foreground">
                         {session.user.email}
                       </p>
@@ -239,6 +312,7 @@ export default function Navbar() {
                   </Link>
 
                   <button
+                    type="button"
                     onClick={handleSignOut}
                     className="flex items-center gap-2 text-left text-sm font-medium text-destructive"
                   >
@@ -255,6 +329,7 @@ export default function Navbar() {
                   >
                     Sign In
                   </Link>
+
                   <Link
                     href="/register"
                     onClick={closeMenu}
