@@ -40,9 +40,12 @@ export default function MyListings() {
   const [error, setError] = useState("");
   const [editingStudio, setEditingStudio] = useState(null);
   const [deletingStudio, setDeletingStudio] = useState(null);
+  const [permanentDeletingStudio, setPermanentDeletingStudio] =
+    useState(null);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [permanentDeleting, setPermanentDeleting] = useState(false);
   const [reactivatingStudioId, setReactivatingStudioId] = useState(null);
 
   useEffect(() => {
@@ -171,9 +174,7 @@ export default function MyListings() {
 
       setStudios((previous) =>
         previous.map((studio) =>
-          studio._id === editingStudio._id
-            ? result.data
-            : studio
+          studio._id === editingStudio._id ? result.data : studio
         )
       );
 
@@ -208,9 +209,7 @@ export default function MyListings() {
 
       setStudios((previous) =>
         previous.map((studio) =>
-          studio._id === deletingStudio._id
-            ? result.data
-            : studio
+          studio._id === deletingStudio._id ? result.data : studio
         )
       );
 
@@ -254,6 +253,43 @@ export default function MyListings() {
       toast.error(error.message);
     } finally {
       setReactivatingStudioId(null);
+    }
+  };
+
+  const handlePermanentDelete = async () => {
+    if (!permanentDeletingStudio) return;
+
+    try {
+      setPermanentDeleting(true);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/studios/${permanentDeletingStudio._id}/permanent`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Failed to permanently delete studio."
+        );
+      }
+
+      setStudios((previous) =>
+        previous.filter(
+          (studio) => studio._id !== permanentDeletingStudio._id
+        )
+      );
+
+      toast.success("Studio permanently deleted.");
+      setPermanentDeletingStudio(null);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setPermanentDeleting(false);
     }
   };
 
@@ -446,23 +482,42 @@ export default function MyListings() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => handleReactivate(studio)}
-                      disabled={reactivatingStudioId !== null}
-                      className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {reactivatingStudioId === studio._id ? (
-                        <LoaderCircle
-                          size={17}
-                          className="animate-spin"
-                        />
-                      ) : (
-                        <RotateCcw size={17} />
-                      )}
-                      {reactivatingStudioId === studio._id
-                        ? "Reactivating..."
-                        : "Reactivate Studio"}
-                    </button>
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => handleReactivate(studio)}
+                        disabled={
+                          reactivatingStudioId !== null ||
+                          permanentDeleting
+                        }
+                        className="flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {reactivatingStudioId === studio._id ? (
+                          <LoaderCircle
+                            size={17}
+                            className="animate-spin"
+                          />
+                        ) : (
+                          <RotateCcw size={17} />
+                        )}
+                        {reactivatingStudioId === studio._id
+                          ? "Reactivating..."
+                          : "Reactivate"}
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setPermanentDeletingStudio(studio)
+                        }
+                        disabled={
+                          reactivatingStudioId !== null ||
+                          permanentDeleting
+                        }
+                        className="flex items-center justify-center gap-2 rounded-lg border border-destructive/30 px-3 py-2.5 text-sm font-semibold text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Trash2 size={16} />
+                        Delete Forever
+                      </button>
+                    </div>
                   )}
                 </div>
               </article>
@@ -700,6 +755,54 @@ export default function MyListings() {
                   <LoaderCircle size={18} className="animate-spin" />
                 )}
                 {deleting ? "Removing..." : "Yes, Remove Studio"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {permanentDeletingStudio && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <AlertTriangle className="h-6 w-6 text-destructive" />
+            </div>
+
+            <h2 className="mt-5 text-xl font-bold">
+              Permanently delete this studio?
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              You are about to permanently delete{" "}
+              <span className="font-semibold text-foreground">
+                {permanentDeletingStudio.name}
+              </span>
+              . This studio listing cannot be recovered after deletion.
+              Existing booking records will not be automatically deleted.
+            </p>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setPermanentDeletingStudio(null)}
+                disabled={permanentDeleting}
+                className="rounded-lg border px-5 py-3 font-semibold transition hover:bg-muted disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePermanentDelete}
+                disabled={permanentDeleting}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-destructive px-5 py-3 font-semibold text-destructive-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {permanentDeleting && (
+                  <LoaderCircle size={18} className="animate-spin" />
+                )}
+                {permanentDeleting
+                  ? "Deleting Permanently..."
+                  : "Yes, Delete Forever"}
               </button>
             </div>
           </div>
