@@ -12,6 +12,8 @@ import {
   LoaderCircle,
   Pencil,
   X,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
@@ -36,8 +38,10 @@ export default function MyListings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingStudio, setEditingStudio] = useState(null);
+  const [deletingStudio, setDeletingStudio] = useState(null);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -163,12 +167,10 @@ export default function MyListings() {
         throw new Error(result.message || "Failed to update studio.");
       }
 
-      const updatedStudio = result.data;
-
       setStudios((previous) =>
         previous.map((studio) =>
           studio._id === editingStudio._id
-            ? updatedStudio
+            ? result.data
             : studio
         )
       );
@@ -179,6 +181,43 @@ export default function MyListings() {
       toast.error(error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingStudio) return;
+
+    try {
+      setDeleting(true);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/studios/${deletingStudio._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to delete studio.");
+      }
+
+      setStudios((previous) =>
+        previous.map((studio) =>
+          studio._id === deletingStudio._id
+            ? result.data
+            : studio
+        )
+      );
+
+      toast.success("Studio removed from public listings.");
+      setDeletingStudio(null);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -352,13 +391,25 @@ export default function MyListings() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={() => openEditForm(studio)}
-                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 font-semibold transition hover:bg-muted"
-                  >
-                    <Pencil size={16} />
-                    Edit Studio
-                  </button>
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => openEditForm(studio)}
+                      disabled={!studio.isActive}
+                      className="flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Pencil size={16} />
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => setDeletingStudio(studio)}
+                      disabled={!studio.isActive}
+                      className="flex items-center justify-center gap-2 rounded-lg border border-destructive/30 px-3 py-2.5 text-sm font-semibold text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </article>
             ))}
@@ -550,6 +601,53 @@ export default function MyListings() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deletingStudio && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <AlertTriangle className="h-6 w-6 text-destructive" />
+            </div>
+
+            <h2 className="mt-5 text-xl font-bold">
+              Remove this studio?
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-foreground">
+                {deletingStudio.name}
+              </span>{" "}
+              from public listings? Customers will no longer be able to
+              discover or book this studio. Existing booking records will
+              be preserved.
+            </p>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDeletingStudio(null)}
+                disabled={deleting}
+                className="rounded-lg border px-5 py-3 font-semibold transition hover:bg-muted disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-destructive px-5 py-3 font-semibold text-destructive-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleting && (
+                  <LoaderCircle size={18} className="animate-spin" />
+                )}
+                {deleting ? "Removing..." : "Yes, Remove Studio"}
+              </button>
+            </div>
           </div>
         </div>
       )}
