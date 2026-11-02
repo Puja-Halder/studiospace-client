@@ -1,4 +1,6 @@
+"use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -13,7 +15,9 @@ import BookingForm from "@/components/BookingForm";
 
 export default function StudioDetails({ studio }) {
   const price = Number(studio.pricePerHour || 0);
+  const securityDeposit = Number(studio.securityDeposit ?? 0);
   const image = studio.images?.[0];
+
   const location = [
     studio.location?.address,
     studio.location?.city,
@@ -23,9 +27,13 @@ export default function StudioDetails({ studio }) {
 
   const categoryName = {
     photography: "Photography Studio",
+    "sound-stage": "Sound Stage / Film Studio",
+    podcast: "Podcast Room",
+    music: "Music Suite",
+    "art-workshop": "Art Workshop",
     workspace: "Creative Workspace",
     event: "Event Space",
-    meeting: "Meeting Space",
+    meeting: "Meeting Room",
   };
 
   return (
@@ -81,18 +89,28 @@ export default function StudioDetails({ studio }) {
                   / hour
                 </span>
               </p>
+
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <p className="text-xs text-gray-500">Security deposit</p>
+                <p className="mt-1 font-semibold text-gray-900">
+                  ৳{securityDeposit.toLocaleString("en-BD")}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="mt-8 overflow-hidden rounded-2xl bg-gray-200">
+          <div className="relative mt-8 h-[280px] overflow-hidden rounded-2xl bg-gray-200 sm:h-[400px] lg:h-[500px]">
             {image ? (
-              <img
+              <Image
                 src={image}
                 alt={studio.name}
-                className="h-[280px] w-full object-cover sm:h-[400px] lg:h-[500px]"
+                fill
+                priority
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1280px"
+                className="object-cover"
               />
             ) : (
-              <div className="flex h-[280px] items-center justify-center text-gray-500 sm:h-[400px] lg:h-[500px]">
+              <div className="flex h-full items-center justify-center text-gray-500">
                 No studio image available
               </div>
             )}
@@ -191,7 +209,9 @@ export default function StudioDetails({ studio }) {
           <aside>
             <div className="sticky top-28 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Price per hour</span>
+                <span className="text-sm text-gray-500">
+                  Price per hour
+                </span>
                 <ShieldCheck className="text-violet-600" size={23} />
               </div>
 
@@ -199,7 +219,23 @@ export default function StudioDetails({ studio }) {
                 ৳{price.toLocaleString("en-BD")}
               </p>
 
-              <p className="mt-1 text-sm text-gray-500">
+              <div className="mt-4 rounded-xl bg-violet-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-gray-700">
+                    Security deposit
+                  </span>
+                  <span className="font-bold text-violet-700">
+                    ৳{securityDeposit.toLocaleString("en-BD")}
+                  </span>
+                </div>
+
+                <p className="mt-2 text-xs leading-5 text-gray-600">
+                  This deposit is separate from the hourly rental price.
+                  Its return is subject to the host's agreed deposit policy.
+                </p>
+              </div>
+
+              <p className="mt-4 text-sm text-gray-500">
                 Choose your preferred booking time.
               </p>
 

@@ -26,9 +26,28 @@ const initialForm = {
   city: "",
   address: "",
   pricePerHour: "",
+  securityDeposit: "0",
   capacity: "",
   facilities: "",
   images: "",
+};
+
+const categories = [
+  { value: "photography", label: "Photography Studio" },
+  { value: "sound-stage", label: "Sound Stage / Film Studio" },
+  { value: "podcast", label: "Podcast Room" },
+  { value: "music", label: "Music Suite" },
+  { value: "art-workshop", label: "Art Workshop" },
+  { value: "workspace", label: "Workspace" },
+  { value: "event", label: "Event Space" },
+  { value: "meeting", label: "Meeting Room" },
+];
+
+const getCategoryName = (category) => {
+  return (
+    categories.find((item) => item.value === category)?.label ||
+    category
+  );
 };
 
 export default function MyListings() {
@@ -49,16 +68,10 @@ export default function MyListings() {
   const [reactivatingStudioId, setReactivatingStudioId] = useState(null);
 
   useEffect(() => {
-    if (sessionLoading) return;
-
-    if (!session?.user) {
-      setLoading(false);
-      return;
-    }
+    if (sessionLoading || !session?.user) return;
 
     const fetchMyListings = async () => {
       try {
-        setLoading(true);
         setError("");
 
         const response = await fetch(
@@ -98,8 +111,9 @@ export default function MyListings() {
       category: studio.category || "photography",
       city: studio.location?.city || "",
       address: studio.location?.address || "",
-      pricePerHour: String(studio.pricePerHour || ""),
-      capacity: String(studio.capacity || ""),
+      pricePerHour: String(studio.pricePerHour ?? ""),
+      securityDeposit: String(studio.securityDeposit ?? 0),
+      capacity: String(studio.capacity ?? ""),
       facilities: (studio.facilities || []).join(", "),
       images: (studio.images || []).join("\n"),
     });
@@ -141,6 +155,30 @@ export default function MyListings() {
       return;
     }
 
+    if (
+      !Number.isFinite(Number(form.pricePerHour)) ||
+      Number(form.pricePerHour) < 1
+    ) {
+      toast.error("Please provide a valid hourly price.");
+      return;
+    }
+
+    if (
+      !Number.isFinite(Number(form.securityDeposit)) ||
+      Number(form.securityDeposit) < 0
+    ) {
+      toast.error("Please provide a valid security deposit.");
+      return;
+    }
+
+    if (
+      !Number.isInteger(Number(form.capacity)) ||
+      Number(form.capacity) < 1
+    ) {
+      toast.error("Please provide a valid studio capacity.");
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -159,6 +197,7 @@ export default function MyListings() {
             city: form.city.trim(),
             address: form.address.trim(),
             pricePerHour: Number(form.pricePerHour),
+            securityDeposit: Number(form.securityDeposit || 0),
             capacity: Number(form.capacity),
             facilities,
             images,
@@ -293,7 +332,7 @@ export default function MyListings() {
     }
   };
 
-  if (sessionLoading || loading) {
+  if (sessionLoading || (session?.user && loading)) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -419,8 +458,8 @@ export default function MyListings() {
                     </div>
                   )}
 
-                  <span className="absolute left-3 top-3 rounded-full bg-background px-3 py-1 text-xs font-semibold capitalize shadow">
-                    {studio.category}
+                  <span className="absolute left-3 top-3 rounded-full bg-background px-3 py-1 text-xs font-semibold shadow">
+                    {getCategoryName(studio.category)}
                   </span>
                 </div>
 
@@ -454,6 +493,10 @@ export default function MyListings() {
                         <span className="text-sm font-normal text-muted-foreground">
                           /hr
                         </span>
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Security deposit: ৳
+                        {Number(studio.securityDeposit ?? 0).toLocaleString("en-BD")}
                       </p>
                     </div>
 
@@ -587,10 +630,14 @@ export default function MyListings() {
                   required
                   className="w-full rounded-lg border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="photography">Photography</option>
-                  <option value="workspace">Workspace</option>
-                  <option value="event">Event</option>
-                  <option value="meeting">Meeting</option>
+                  {categories.map((category) => (
+                    <option
+                      key={category.value}
+                      value={category.value}
+                    >
+                      {category.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -640,19 +687,37 @@ export default function MyListings() {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium">
-                    Capacity (Guests)
+                    Security Deposit (৳)
                   </label>
                   <input
                     type="number"
-                    name="capacity"
-                    value={form.capacity}
+                    name="securityDeposit"
+                    value={form.securityDeposit}
                     onChange={handleChange}
-                    min="1"
-                    step="1"
+                    min="0"
                     required
                     className="w-full rounded-lg border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
                   />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Enter 0 if no deposit is required.
+                  </p>
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Capacity (Guests)
+                </label>
+                <input
+                  type="number"
+                  name="capacity"
+                  value={form.capacity}
+                  onChange={handleChange}
+                  min="1"
+                  step="1"
+                  required
+                  className="w-full rounded-lg border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
 
               <div>

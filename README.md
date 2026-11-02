@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# StudioSpace — Creative Workspace Marketplace
 
-## Getting Started
+StudioSpace is a peer-to-peer marketplace where photographers, filmmakers, podcasters, musicians, and other creators can discover and book creative workspaces. Studio owners can list and manage their spaces, while creators can explore available studios and manage their reservations.
 
-First, run the development server:
+## Live Website
+
+**Live URL:** [Add your deployed website URL]
+
+## Features
+
+- **User Authentication:** Secure registration, login, and session management using Better Auth.
+- **Explore Studios:** Browse available creative spaces and search or filter studio listings.
+- **Studio Details:** View studio information, pricing, location, and availability.
+- **Studio Management:** Hosts can create, edit, deactivate, reactivate, and permanently delete their listings.
+- **Booking System:** Customers can reserve studios and view their booking history.
+- **Booking Management:** Hosts can review booking requests and confirm or reject reservations.
+- **Responsive Design:** Interface designed for desktop, tablet, and mobile devices.
+- **Notifications:** User feedback through toast notifications and custom dialogs.
+
+## Technology Stack
+
+### Frontend
+- Next.js (App Router)
+- JavaScript
+- Tailwind CSS
+- Shadcn UI
+- Lucide React
+- Sonner
+- Swiper.js
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB Atlas
+- Mongoose
+- Better Auth
+
+## Project Repositories
+
+- **Client:** [Add client GitHub repository URL]
+- **Server:** [Add server GitHub repository URL]
+
+## Local Setup
+
+### Prerequisites
+
+- Node.js
+- npm
+- MongoDB Atlas account or MongoDB connection
+- Git
+
+### 1. Clone the repositories
+
+Clone the client and server repositories into your local machine.
+
+### 2. Configure the Backend
+
+Open a terminal in the server project directory:
+
+```bash
+cd studiospace-server
+npm install
+```
+
+Create a `.env` file in the server directory and configure:
+
+```env
+PORT=5000
+BETTER_AUTH_URL=http://localhost:5000
+BETTER_AUTH_SECRET=your_secret
+MONGODB_URI=your_mongodb_connection_string
+```
+
+Use your own secure values. Never publish your actual environment variables.
+
+Start the backend:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Configure the Frontend
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Open another terminal in the client project directory:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd studiospace-client
+npm install
+```
 
-## Learn More
+Create a `.env.local` file:
 
-To learn more about Next.js, take a look at the following resources:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Start the frontend:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run dev
+```
 
-## Deploy on Vercel
+### 4. Open the Application
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Visit:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+http://localhost:3000
+
+Make sure both the frontend and backend development servers are running.
+
+
+
+## Author
+

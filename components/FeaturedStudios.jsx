@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   MapPin,
@@ -85,6 +86,7 @@ export default function FeaturedStudios() {
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-center">
             <p className="font-medium text-destructive">{error}</p>
             <button
+              type="button"
               onClick={() => window.location.reload()}
               className="mt-4 rounded-lg bg-primary px-5 py-2 text-primary-foreground"
             >
@@ -119,10 +121,12 @@ export default function FeaturedStudios() {
               >
                 <div className="relative h-56 overflow-hidden bg-muted">
                   {studio.images?.[0] ? (
-                    <img
+                    <Image
                       src={studio.images[0]}
                       alt={studio.name}
-                      className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition duration-500 hover:scale-105"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">

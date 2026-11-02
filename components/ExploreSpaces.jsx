@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Search,
@@ -18,12 +19,9 @@ import categories from "@/data/categories.json";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const categoryNames = {
-  photography: "Photography Studio",
-  workspace: "Creative Workspace",
-  event: "Event Space",
-  meeting: "Meeting Space",
-};
+const categoryNames = Object.fromEntries(
+  categories.map((category) => [category.id, category.name])
+);
 
 export default function ExploreSpaces() {
   const searchParams = useSearchParams();
@@ -63,9 +61,16 @@ export default function ExploreSpaces() {
     fetchStudios();
   }, []);
 
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get("category") || "all";
+    setSelectedCategory(categoryFromUrl);
+  }, [searchParams]);
+
   const filteredStudios = studios
     .filter((studio) => {
       const searchValue = searchTerm.trim().toLowerCase();
+
+      const studioName = (studio.name || "").toLowerCase();
 
       const studioLocation = [
         studio.location?.city,
@@ -75,12 +80,13 @@ export default function ExploreSpaces() {
         .join(" ")
         .toLowerCase();
 
+      const studioCategory =
+        categoryNames[studio.category] || studio.category || "";
+
       const matchesSearch =
-        studio.name.toLowerCase().includes(searchValue) ||
+        studioName.includes(searchValue) ||
         studioLocation.includes(searchValue) ||
-        (categoryNames[studio.category] || studio.category)
-          .toLowerCase()
-          .includes(searchValue);
+        studioCategory.toLowerCase().includes(searchValue);
 
       const matchesCategory =
         selectedCategory === "all" ||
@@ -113,8 +119,9 @@ export default function ExploreSpaces() {
           </h1>
 
           <p className="mt-5 max-w-2xl leading-8 text-violet-100">
-            Find inspiring photography studios, creative workspaces, and
-            unique venues for your next project.
+            Discover photography studios, sound stages, podcast rooms,
+            music suites, art workshops, and other creative spaces
+            for your next project.
           </p>
         </div>
       </section>
@@ -235,10 +242,12 @@ export default function ExploreSpaces() {
                   >
                     <div className="relative h-60 overflow-hidden bg-gray-100">
                       {studio.images?.[0] ? (
-                        <img
+                        <Image
                           src={studio.images[0]}
                           alt={studio.name}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition duration-500 group-hover:scale-105"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">

@@ -14,6 +14,7 @@ const initialForm = {
   city: "",
   address: "",
   pricePerHour: "",
+  securityDeposit: "0",
   capacity: "",
   facilities: "",
 };
@@ -129,6 +130,14 @@ export default function AddStudioForm() {
     }
 
     if (
+      !Number.isFinite(Number(form.securityDeposit)) ||
+      Number(form.securityDeposit) < 0
+    ) {
+      toast.error("Please enter a valid security deposit.");
+      return;
+    }
+
+    if (
       !Number.isInteger(Number(form.capacity)) ||
       Number(form.capacity) < 1
     ) {
@@ -152,6 +161,7 @@ export default function AddStudioForm() {
         city: form.city.trim(),
         address: form.address.trim(),
         pricePerHour: Number(form.pricePerHour),
+        securityDeposit: Number(form.securityDeposit || 0),
         capacity: Number(form.capacity),
         facilities: form.facilities
           .split(",")
@@ -275,6 +285,10 @@ export default function AddStudioForm() {
         >
           <option value="">Select a category</option>
           <option value="photography">Photography Studio</option>
+          <option value="sound-stage">Sound Stage / Film Studio</option>
+          <option value="podcast">Podcast Room</option>
+          <option value="music">Music Suite</option>
+          <option value="art-workshop">Art Workshop</option>
           <option value="workspace">Creative Workspace</option>
           <option value="event">Event Space</option>
           <option value="meeting">Meeting Space</option>
@@ -332,20 +346,38 @@ export default function AddStudioForm() {
 
         <div>
           <label className="mb-2 block font-semibold text-gray-800">
-            Capacity *
+            Security Deposit (৳)
           </label>
           <input
             type="number"
-            name="capacity"
-            value={form.capacity}
+            name="securityDeposit"
+            value={form.securityDeposit}
             onChange={handleChange}
-            min="1"
-            step="1"
-            placeholder="e.g. 10"
-            required
+            min="0"
+            placeholder="e.g. 2000"
             className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
           />
+          <p className="mt-2 text-sm text-gray-500">
+            Enter 0 if no security deposit is required.
+          </p>
         </div>
+      </div>
+
+      <div>
+        <label className="mb-2 block font-semibold text-gray-800">
+          Capacity *
+        </label>
+        <input
+          type="number"
+          name="capacity"
+          value={form.capacity}
+          onChange={handleChange}
+          min="1"
+          step="1"
+          placeholder="e.g. 10"
+          required
+          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-black"
+        />
       </div>
 
       <div>

@@ -6,6 +6,10 @@ import {
   Palette,
   CalendarDays,
   Users,
+  Film,
+  Mic,
+  Music,
+  Brush,
 } from "lucide-react";
 import categories from "@/data/categories.json";
 
@@ -14,6 +18,10 @@ const categoryIcons = {
   palette: Palette,
   calendar: CalendarDays,
   users: Users,
+  film: Film,
+  mic: Mic,
+  music: Music,
+  brush: Brush,
 };
 
 export default function StudioCategories() {
@@ -30,14 +38,14 @@ export default function StudioCategories() {
           </h2>
 
           <p className="mt-4 leading-7 text-gray-600">
-            Whether you're creating, collaborating, or celebrating, discover a
-            space that fits your purpose.
+            Whether you&apos;re creating, collaborating, or celebrating,
+            discover a space that fits your purpose.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((category) => {
-            const Icon = categoryIcons[category.icon];
+            const Icon = categoryIcons[category.icon] || Camera;
 
             return (
               <Link

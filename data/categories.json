@@ -3,9 +3,37 @@
   {
     "id": "photography",
     "name": "Photography Studio",
-    "description": "Professional spaces for photoshoots and creative photography.",
+    "description": "Professional spaces for photoshoots, portraits, and creative photography.",
     "icon": "camera",
     "spaces": "Explore photography spaces"
+  },
+  {
+    "id": "sound-stage",
+    "name": "Sound Stage / Film Studio",
+    "description": "Production spaces for filmmaking, video shoots, and creative productions.",
+    "icon": "film",
+    "spaces": "Explore sound stages"
+  },
+  {
+    "id": "podcast",
+    "name": "Podcast Room",
+    "description": "Dedicated spaces for podcast recording, interviews, and audio production.",
+    "icon": "mic",
+    "spaces": "Explore podcast rooms"
+  },
+  {
+    "id": "music",
+    "name": "Music Suite",
+    "description": "Creative studios for music production, recording, and sound design.",
+    "icon": "music",
+    "spaces": "Explore music suites"
+  },
+  {
+    "id": "art-workshop",
+    "name": "Art Workshop",
+    "description": "Inspiring spaces for painting, crafts, design, and artistic collaboration.",
+    "icon": "brush",
+    "spaces": "Explore art workshops"
   },
   {
     "id": "workspace",
@@ -29,4 +57,3 @@
     "spaces": "Explore meeting spaces"
   }
 ]
-

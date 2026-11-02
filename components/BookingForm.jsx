@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
@@ -22,31 +22,43 @@ const getLocalDateTime = (date) => {
   return localDate.toISOString().slice(0, 16);
 };
 
+const formatPrice = (amount) => {
+  return Number(amount || 0).toLocaleString("en-BD");
+};
+
 export default function BookingForm({ studio }) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [minimumDateTime, setMinimumDateTime] = useState("");
+  const [minimumDateTime] = useState(() =>
+    getLocalDateTime(new Date())
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const pricePerHour = Number(studio.pricePerHour || 0);
-
-  useEffect(() => {
-    setMinimumDateTime(getLocalDateTime(new Date()));
-  }, []);
+  const pricePerHour = Number(studio?.pricePerHour || 0);
+  const securityDeposit = Number(studio?.securityDeposit ?? 0);
 
   const startDate = startTime ? new Date(startTime) : null;
   const endDate = endTime ? new Date(endTime) : null;
 
   const totalHours =
-    startDate && endDate && endDate > startDate
+    startDate &&
+    endDate &&
+    !Number.isNaN(startDate.getTime()) &&
+    !Number.isNaN(endDate.getTime()) &&
+    endDate > startDate
       ? (endDate.getTime() - startDate.getTime()) / 3600000
       : 0;
 
-  const estimatedPrice =
+  const rentalPrice =
     totalHours >= 1 ? totalHours * pricePerHour : 0;
+
+  const estimatedTotal =
+    totalHours >= 1
+      ? rentalPrice + securityDeposit
+      : 0;
 
   const minimumEndTime =
     startDate && !Number.isNaN(startDate.getTime())
@@ -119,9 +131,6 @@ export default function BookingForm({ studio }) {
       const result = await response.json();
 
       if (!response.ok) {
-        console.log("Booking response status:", response.status);
-        console.log("Booking response data:", result);
-
         throw new Error(
           result.message || "Booking request failed."
         );
@@ -221,7 +230,7 @@ export default function BookingForm({ studio }) {
       <div className="rounded-xl bg-gray-50 p-4">
         <div className="flex justify-between text-sm text-gray-600">
           <span>Hourly price</span>
-          <span>৳{pricePerHour.toLocaleString("en-BD")}</span>
+          <span>৳{formatPrice(pricePerHour)}</span>
         </div>
 
         <div className="mt-3 flex justify-between text-sm text-gray-600">
@@ -233,20 +242,36 @@ export default function BookingForm({ studio }) {
           </span>
         </div>
 
+        <div className="mt-3 flex justify-between text-sm text-gray-600">
+          <span>Rental cost</span>
+          <span>৳{formatPrice(rentalPrice)}</span>
+        </div>
+
+        <div className="mt-3 flex justify-between text-sm text-gray-600">
+          <span>Security deposit</span>
+          <span>৳{formatPrice(securityDeposit)}</span>
+        </div>
+
+        <p className="mt-2 text-xs leading-5 text-gray-500">
+          The security deposit is separate from the rental cost.
+          Its return is subject to the agreed deposit policy.
+        </p>
+
         <div className="my-3 border-t border-gray-200" />
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <span className="font-semibold text-gray-900">
-            Estimated Total
+            Estimated Amount Due
           </span>
 
           <span className="text-xl font-bold text-violet-700">
-            ৳{estimatedPrice.toLocaleString("en-BD")}
+            ৳{formatPrice(estimatedTotal)}
           </span>
         </div>
 
         <p className="mt-2 text-xs leading-5 text-gray-500">
-          Final booking price is calculated and verified by the server.
+          This is an estimate. The server calculates and verifies
+          the final booking amount.
         </p>
       </div>
 

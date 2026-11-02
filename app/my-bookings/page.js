@@ -1,7 +1,7 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
@@ -24,10 +24,14 @@ const formatDate = (date) => {
   });
 };
 
+const formatPrice = (price) =>
+  Number(price || 0).toLocaleString("en-BD");
+
 const statusStyles = {
   pending: "bg-amber-100 text-amber-700",
   confirmed: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-700",
+  rejected: "bg-red-100 text-red-700",
   completed: "bg-blue-100 text-blue-700",
 };
 
@@ -38,34 +42,32 @@ export default function MyBookingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState(null);
 
-  const fetchBookings = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/bookings/my`, {
-        credentials: "include",
-        cache: "no-store",
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Unable to load bookings.");
-      }
-
-      setBookings(result.data || []);
-    } catch (error) {
-      console.error("Fetch bookings error:", error);
-      toast.error(error.message || "Unable to load your bookings.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (!isPending && session?.user) {
-      fetchBookings();
-    } else if (!isPending && !session?.user) {
-      setIsLoading(false);
-    }
+    if (isPending || !session?.user) return;
+
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/bookings/my`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Unable to load bookings.");
+        }
+
+        setBookings(result.data || []);
+      } catch (error) {
+        console.error("Fetch bookings error:", error);
+        toast.error(error.message || "Unable to load your bookings.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBookings();
   }, [isPending, session]);
 
   const handleCancel = async (bookingId) => {
@@ -109,7 +111,7 @@ export default function MyBookingsPage() {
     }
   };
 
-  if (isPending || isLoading) {
+  if (isPending || (session?.user && isLoading)) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center bg-gray-50">
         <Loader2 className="h-9 w-9 animate-spin text-violet-600" />
@@ -186,7 +188,7 @@ export default function MyBookingsPage() {
             </h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-              You haven't booked any creative spaces yet. Explore available
+              You haven&apos;t booked any creative spaces yet. Explore available
               studios and find the perfect space for your next project.
             </p>
 
@@ -202,6 +204,13 @@ export default function MyBookingsPage() {
           <div className="mt-8 space-y-6">
             {bookings.map((booking) => {
               const studio = booking.studioId;
+              const securityDeposit = Number(
+                booking.securityDeposit ?? 0
+              );
+              const rentalCost = Number(booking.totalPrice || 0);
+              const estimatedAmountDue =
+                rentalCost + securityDeposit;
+
               const canCancel = ["pending", "confirmed"].includes(
                 booking.status
               );
@@ -212,12 +221,14 @@ export default function MyBookingsPage() {
                   className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3">
-                    <div className="h-56 bg-gray-100 md:h-full">
+                    <div className="relative h-56 bg-gray-100 md:h-full md:min-h-64">
                       {studio?.images?.[0] ? (
-                        <img
+                        <Image
                           src={studio.images[0]}
                           alt={studio.name || "Studio"}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="flex h-full min-h-56 items-center justify-center text-sm text-gray-400">
@@ -290,11 +301,10 @@ export default function MyBookingsPage() {
                           />
 
                           <div>
-                            <p className="text-xs text-gray-500">
-                              Location
-                            </p>
+                            <p className="text-xs text-gray-500">Location</p>
                             <p className="mt-1 text-sm font-medium text-gray-800">
-                              {studio?.location?.address || "Address unavailable"}
+                              {studio?.location?.address ||
+                                "Address unavailable"}
                               {studio?.location?.city
                                 ? `, ${studio.location.city}`
                                 : ""}
@@ -312,15 +322,40 @@ export default function MyBookingsPage() {
                         </div>
                       </div>
 
-                      <div className="mt-6 flex flex-col justify-between gap-4 border-t border-gray-100 pt-5 sm:flex-row sm:items-center">
-                        <div>
-                          <p className="text-xs text-gray-500">
-                            Total Booking Price
-                          </p>
-                          <p className="mt-1 text-2xl font-bold text-violet-700">
-                            ৳{Number(booking.totalPrice || 0).toLocaleString("en-BD")}
-                          </p>
+                      <div className="mt-6 rounded-xl bg-gray-50 p-4">
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Rental Cost</span>
+                          <span>৳{formatPrice(rentalCost)}</span>
                         </div>
+
+                        <div className="mt-3 flex justify-between text-sm text-gray-600">
+                          <span>Security Deposit</span>
+                          <span>৳{formatPrice(securityDeposit)}</span>
+                        </div>
+
+                        <p className="mt-2 text-xs leading-5 text-gray-500">
+                          The deposit is separate from the rental cost.
+                          Its return depends on the agreed host deposit policy.
+                        </p>
+
+                        <div className="my-3 border-t border-gray-200" />
+
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-semibold text-gray-900">
+                            Estimated Amount Due
+                          </span>
+
+                          <span className="text-xl font-bold text-violet-700">
+                            ৳{formatPrice(estimatedAmountDue)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                        <p className="text-xs leading-5 text-gray-500">
+                          Amounts are booking estimates. No payment or refund
+                          is processed by this display.
+                        </p>
 
                         {canCancel && (
                           <button

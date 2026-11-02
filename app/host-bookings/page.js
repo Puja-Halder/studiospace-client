@@ -1,7 +1,7 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
@@ -25,6 +25,10 @@ const formatDate = (date) => {
   });
 };
 
+const formatPrice = (amount) => {
+  return Number(amount || 0).toLocaleString("en-BD");
+};
+
 const statusStyles = {
   pending: "bg-amber-100 text-amber-700",
   confirmed: "bg-green-100 text-green-700",
@@ -41,12 +45,7 @@ export default function HostBookingsPage() {
   const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
-    if (isPending) return;
-
-    if (!session?.user) {
-      setIsLoading(false);
-      return;
-    }
+    if (isPending || !session?.user) return;
 
     const fetchHostBookings = async () => {
       try {
@@ -122,7 +121,7 @@ export default function HostBookingsPage() {
     }
   };
 
-  if (isPending || isLoading) {
+  if (isPending || (session?.user && isLoading)) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center bg-gray-50">
         <Loader2 className="h-9 w-9 animate-spin text-violet-600" />
@@ -241,18 +240,24 @@ export default function HostBookingsPage() {
               const studio = booking.studioId;
               const isProcessing = processingId === booking._id;
 
+              const rentalCost = Number(booking.totalPrice || 0);
+              const securityDeposit = Number(booking.securityDeposit ?? 0);
+              const estimatedAmountDue = rentalCost + securityDeposit;
+
               return (
                 <article
                   key={booking._id}
                   className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3">
-                    <div className="h-56 bg-gray-100 md:h-full">
+                    <div className="relative h-56 bg-gray-100 md:h-full md:min-h-64">
                       {studio?.images?.[0] ? (
-                        <img
+                        <Image
                           src={studio.images[0]}
                           alt={studio.name || "Studio"}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="flex h-full min-h-56 items-center justify-center text-sm text-gray-400">
@@ -329,7 +334,8 @@ export default function HostBookingsPage() {
                               Studio Location
                             </p>
                             <p className="mt-1 text-sm font-medium text-gray-800">
-                              {studio?.location?.address || "Address unavailable"}
+                              {studio?.location?.address ||
+                                "Address unavailable"}
                               {studio?.location?.city
                                 ? `, ${studio.location.city}`
                                 : ""}
@@ -347,16 +353,48 @@ export default function HostBookingsPage() {
                         </div>
                       </div>
 
-                      <div className="mt-6 flex flex-col justify-between gap-4 border-t border-gray-100 pt-5 sm:flex-row sm:items-center">
-                        <div>
-                          <p className="text-xs text-gray-500">
-                            Booking Amount
-                          </p>
-                          <p className="mt-1 text-2xl font-bold text-violet-700">
-                            ৳{Number(booking.totalPrice || 0).toLocaleString("en-BD")}
-                          </p>
+                      <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <h3 className="text-sm font-semibold text-gray-800">
+                          Booking Cost Breakdown
+                        </h3>
+
+                        <div className="mt-4 space-y-3 text-sm">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-gray-500">
+                              Rental Cost
+                            </span>
+                            <span className="font-medium text-gray-800">
+                              ৳{formatPrice(rentalCost)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-gray-500">
+                              Security Deposit
+                            </span>
+                            <span className="font-medium text-gray-800">
+                              ৳{formatPrice(securityDeposit)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3 border-t border-gray-200 pt-3">
+                            <span className="font-semibold text-gray-800">
+                              Estimated Total Amount Due
+                            </span>
+                            <span className="text-xl font-bold text-violet-700">
+                              ৳{formatPrice(estimatedAmountDue)}
+                            </span>
+                          </div>
                         </div>
 
+                        <p className="mt-3 text-xs leading-5 text-gray-500">
+                          The security deposit is separate from the rental
+                          cost. Its return depends on the deposit policy agreed
+                          between the host and customer.
+                        </p>
+                      </div>
+
+                      <div className="mt-5 flex flex-col justify-between gap-4 border-t border-gray-100 pt-5 sm:flex-row sm:items-center">
                         <div className="text-sm text-gray-500">
                           Customer ID:{" "}
                           <span className="font-medium text-gray-700">
