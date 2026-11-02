@@ -34,7 +34,10 @@ const benefits = [
 
 export default function HostGuarantee() {
   return (
-    <section className="bg-white px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
+    <section
+      id="about"
+      className="scroll-mt-24 bg-white px-5 py-20 sm:px-8 lg:px-10 lg:py-24"
+    >
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2">
           <div>
@@ -102,4 +105,3 @@ export default function HostGuarantee() {
     </section>
   );
 }
-

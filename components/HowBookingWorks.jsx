@@ -31,7 +31,10 @@ const bookingSteps = [
 
 export default function HowBookingWorks() {
   return (
-    <section className="bg-gray-50 px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
+    <section
+      id="how-it-works"
+      className="scroll-mt-24 bg-gray-50 px-5 py-20 sm:px-8 lg:px-10 lg:py-24"
+    >
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto mb-16 max-w-2xl text-center">
           <span className="text-sm font-bold uppercase tracking-[2px] text-violet-600">
