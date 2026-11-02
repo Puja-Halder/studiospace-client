@@ -14,6 +14,7 @@ import {
   X,
   Trash2,
   AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
@@ -42,6 +43,7 @@ export default function MyListings() {
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [reactivatingStudioId, setReactivatingStudioId] = useState(null);
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -221,6 +223,40 @@ export default function MyListings() {
     }
   };
 
+  const handleReactivate = async (studio) => {
+    try {
+      setReactivatingStudioId(studio._id);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/studios/${studio._id}/reactivate`,
+        {
+          method: "PATCH",
+          credentials: "include",
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Failed to reactivate studio."
+        );
+      }
+
+      setStudios((previous) =>
+        previous.map((item) =>
+          item._id === studio._id ? result.data : item
+        )
+      );
+
+      toast.success("Studio reactivated successfully!");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setReactivatingStudioId(null);
+    }
+  };
+
   if (sessionLoading || loading) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center">
@@ -391,25 +427,43 @@ export default function MyListings() {
                     </p>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => openEditForm(studio)}
-                      disabled={!studio.isActive}
-                      className="flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <Pencil size={16} />
-                      Edit
-                    </button>
+                  {studio.isActive ? (
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => openEditForm(studio)}
+                        className="flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition hover:bg-muted"
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
 
+                      <button
+                        onClick={() => setDeletingStudio(studio)}
+                        className="flex items-center justify-center gap-2 rounded-lg border border-destructive/30 px-3 py-2.5 text-sm font-semibold text-destructive transition hover:bg-destructive/10"
+                      >
+                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      onClick={() => setDeletingStudio(studio)}
-                      disabled={!studio.isActive}
-                      className="flex items-center justify-center gap-2 rounded-lg border border-destructive/30 px-3 py-2.5 text-sm font-semibold text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => handleReactivate(studio)}
+                      disabled={reactivatingStudioId !== null}
+                      className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <Trash2 size={16} />
-                      Delete
+                      {reactivatingStudioId === studio._id ? (
+                        <LoaderCircle
+                          size={17}
+                          className="animate-spin"
+                        />
+                      ) : (
+                        <RotateCcw size={17} />
+                      )}
+                      {reactivatingStudioId === studio._id
+                        ? "Reactivating..."
+                        : "Reactivate Studio"}
                     </button>
-                  </div>
+                  )}
                 </div>
               </article>
             ))}
