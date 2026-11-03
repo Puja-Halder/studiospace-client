@@ -23,6 +23,7 @@ export default function AuthForm({ mode }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -107,8 +108,28 @@ export default function AuthForm({ mode }) {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    toast.info("Google sign-in will be configured in a later step.");
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "http://localhost:3000/",
+        errorCallbackURL: "http://localhost:3000/login",
+      });
+
+      if (result.error) {
+        toast.error(
+          result.error.message || "Google sign-in failed. Please try again."
+        );
+        setIsGoogleLoading(false);
+      }
+    } catch (error) {
+      toast.error(
+        error.message || "Google sign-in failed. Please try again."
+      );
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -162,7 +183,7 @@ export default function AuthForm({ mode }) {
                     placeholder="Enter your full name"
                     required
                     autoComplete="name"
-                    className="w-full rounded-xl border border-gray-200 py-3.5 pl-12 pr-4 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                   />
                 </div>
               </div>
@@ -191,7 +212,7 @@ export default function AuthForm({ mode }) {
                   placeholder="you@example.com"
                   required
                   autoComplete="email"
-                  className="w-full rounded-xl border border-gray-200 py-3.5 pl-12 pr-4 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                 />
               </div>
             </div>
@@ -222,12 +243,12 @@ export default function AuthForm({ mode }) {
                   autoComplete={
                     isRegister ? "new-password" : "current-password"
                   }
-                  className="w-full rounded-xl border border-gray-200 py-3.5 pl-12 pr-12 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                 />
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((previous) => !previous)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                 >
@@ -267,13 +288,13 @@ export default function AuthForm({ mode }) {
                     placeholder="Confirm your password"
                     required
                     autoComplete="new-password"
-                    className="w-full rounded-xl border border-gray-200 py-3.5 pl-12 pr-12 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                   />
 
                   <button
                     type="button"
                     onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
+                      setShowConfirmPassword((previous) => !previous)
                     }
                     aria-label={
                       showConfirmPassword
@@ -294,7 +315,7 @@ export default function AuthForm({ mode }) {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isGoogleLoading}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-4 font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading
@@ -322,7 +343,8 @@ export default function AuthForm({ mode }) {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="flex w-full items-center justify-center gap-3 rounded-full border border-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            disabled={isLoading || isGoogleLoading}
+            className="flex w-full items-center justify-center gap-3 rounded-full border border-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
               <path
@@ -343,7 +365,9 @@ export default function AuthForm({ mode }) {
               />
             </svg>
 
-            Continue with Google
+            {isGoogleLoading
+              ? "Connecting to Google..."
+              : "Continue with Google"}
           </button>
 
           <p className="mt-8 text-center text-sm text-gray-600">
