@@ -96,8 +96,8 @@ export default function AuthForm({ mode }) {
     try {
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "http://localhost:3000/",
-        errorCallbackURL: "http://localhost:3000/login",
+        callbackURL: `${window.location.origin}/`,
+        errorCallbackURL: `${window.location.origin}/login`,
         ...(isRegister
           ? {
               additionalData: {
@@ -288,7 +288,9 @@ export default function AuthForm({ mode }) {
                     type="button"
                     onClick={() => setShowPassword((previous) => !previous)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? (
                       <EyeOff size={18} />
