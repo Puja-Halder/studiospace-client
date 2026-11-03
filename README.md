@@ -1,114 +1,146 @@
-# StudioSpace — Creative Workspace Marketplace
+# StudioSpace — Creative Workspace & Production Studio Marketplace
 
-StudioSpace is a peer-to-peer marketplace where photographers, filmmakers, podcasters, musicians, and other creators can discover and book creative workspaces. Studio owners can list and manage their spaces, while creators can explore available studios and manage their reservations.
+StudioSpace is a peer-to-peer marketplace where creators can discover, book, and manage creative workspaces and production studios. It connects studio owners with photographers, filmmakers, musicians, podcasters, and other creative professionals.
 
-## Live Website
+## Live Project
 
-**Live URL:** [Add your deployed website URL]
+Coming soon.
 
 ## Features
 
-- **User Authentication:** Secure registration, login, and session management using Better Auth.
-- **Explore Studios:** Browse available creative spaces and search or filter studio listings.
-- **Studio Details:** View studio information, pricing, location, and availability.
-- **Studio Management:** Hosts can create, edit, deactivate, reactivate, and permanently delete their listings.
-- **Booking System:** Customers can reserve studios and view their booking history.
-- **Booking Management:** Hosts can review booking requests and confirm or reject reservations.
-- **Responsive Design:** Interface designed for desktop, tablet, and mobile devices.
-- **Notifications:** User feedback through toast notifications and custom dialogs.
+- **User Authentication:** Register and log in using email and Google.
+- **Customer and Host Roles:** Different experiences for customers and studio owners.
+- **Studio Discovery:** Browse creative studios and production spaces.
+- **Search and Filtering:** Find studios based on categories and search criteria.
+- **Studio Details:** View studio descriptions, images, locations, pricing, and amenities.
+- **Studio Management:** Hosts can create and manage their studio listings.
+- **Booking System:** Customers can reserve available creative spaces.
+- **My Bookings:** Customers can view and manage their bookings.
+- **Host Dashboard:** Hosts can view and manage customer bookings.
+- **Responsive Design:** Designed for desktop, tablet, and mobile devices.
+
+## Studio Categories
+
+- Photography Studio
+- Recording Studio
+- Podcast Studio
+- Film Production Studio
+- Music Studio
+- Event & Exhibition Space
+- Dance & Rehearsal Studio
+- Fashion Studio
+- Video Editing Suite
+- Art & Painting Studio
+- Green Screen Studio
+- Creative Workshop Space
 
 ## Technology Stack
 
-### Frontend
-- Next.js (App Router)
+**Frontend**
+- Next.js
+- React
 - JavaScript
 - Tailwind CSS
-- Shadcn UI
 - Lucide React
+- Swiper
 - Sonner
-- Swiper.js
+- shadcn/ui
 
-### Backend
+**Backend**
 - Node.js
 - Express.js
-- MongoDB Atlas
-- Mongoose
+- MongoDB
 - Better Auth
 
-## Project Repositories
-
-- **Client:** [Add client GitHub repository URL]
-- **Server:** [Add server GitHub repository URL]
-
-## Local Setup
+## Installation and Setup
 
 ### Prerequisites
 
 - Node.js
 - npm
-- MongoDB Atlas account or MongoDB connection
-- Git
+- MongoDB Atlas database
+- Backend server configured and running
 
-### 1. Clone the repositories
-
-Clone the client and server repositories into your local machine.
-
-### 2. Configure the Backend
-
-Open a terminal in the server project directory:
+### 1. Clone the repository
 
 ```bash
-cd studiospace-server
-npm install
+git clone YOUR_FRONTEND_REPOSITORY_URL
 ```
 
-Create a `.env` file in the server directory and configure:
-
-```env
-PORT=5000
-BETTER_AUTH_URL=http://localhost:5000
-BETTER_AUTH_SECRET=your_secret
-MONGODB_URI=your_mongodb_connection_string
-```
-
-Use your own secure values. Never publish your actual environment variables.
-
-Start the backend:
-
-```bash
-npm run dev
-```
-
-### 3. Configure the Frontend
-
-Open another terminal in the client project directory:
+### 2. Navigate to the project
 
 ```bash
 cd studiospace-client
+```
+
+### 3. Install dependencies
+
+```bash
 npm install
 ```
 
-Create a `.env.local` file:
+### 4. Configure environment variables
+
+Create a `.env.local` file in the project root:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-Start the frontend:
+For production, replace the URL with your deployed backend API URL.
+
+### 5. Start the development server
 
 ```bash
 npm run dev
 ```
 
-### 4. Open the Application
+Open http://localhost:3000 in your browser.
 
-Visit:
+## Backend Configuration
 
-http://localhost:3000
+StudioSpace requires its Express backend to be running.
 
-Make sure both the frontend and backend development servers are running.
+The backend handles authentication, database operations, and API requests.
 
+See the backend repository for installation and configuration instructions.
 
+## Project Structure
+
+```text
+studiospace-client/
+├── app/
+│   ├── add-studio/
+│   ├── explore/
+│   ├── host-bookings/
+│   ├── login/
+│   ├── my-bookings/
+│   ├── my-listings/
+│   ├── register/
+│   ├── studio/
+│   ├── globals.css
+│   ├── layout.js
+│   └── page.js
+├── components/
+├── lib/
+├── public/
+├── .env.local
+├── next.config.mjs
+├── package.json
+└── README.md
+```
+
+## Future Improvements
+
+- Production deployment
+- Additional studio discovery filters
+- Enhanced booking management
+- Improved user profile management
 
 ## Author
 
+Puja Halder
+
+## License
+
+This project was developed for educational purposes.
