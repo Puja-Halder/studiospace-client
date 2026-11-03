@@ -17,92 +17,74 @@ import {
 import { authClient } from "@/lib/auth-client";
 
 export default function AuthForm({ mode }) {
-  const router = useRouter();
   const isRegister = mode === "register";
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    role: "customer",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const inputClass =
+    "w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-gray-900 placeholder:text-gray-500 outline-none transition focus:border-[#17251F] dark:bg-white dark:text-gray-900 dark:placeholder:text-gray-500";
 
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    setFormData((previousData) => ({
-      ...previousData,
+    setFormData((previous) => ({
+      ...previous,
       [name]: value,
     }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (isRegister) {
-      if (formData.password.length < 6) {
-        toast.error("Password must contain at least 6 characters.");
-        return;
-      }
-
-      if (!/[A-Z]/.test(formData.password)) {
-        toast.error("Password must contain at least one uppercase letter.");
-        return;
-      }
-
-      if (!/[a-z]/.test(formData.password)) {
-        toast.error("Password must contain at least one lowercase letter.");
-        return;
-      }
-
-      if (formData.password !== formData.confirmPassword) {
-        toast.error("Passwords do not match.");
-        return;
-      }
-    }
-
     setIsLoading(true);
 
     try {
-      let result;
-
       if (isRegister) {
-        result = await authClient.signUp.email({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
+        const result = await authClient.signUp.email({
+          name: formData.name,
+          email: formData.email,
           password: formData.password,
+          role: formData.role,
         });
-      } else {
-        result = await authClient.signIn.email({
-          email: formData.email.trim(),
-          password: formData.password,
-        });
-      }
 
-      if (result.error) {
-        toast.error(
-          result.error.message || "Authentication failed. Please try again."
+        if (result.error) {
+          toast.error(
+            result.error.message || "Registration failed. Please try again."
+          );
+          return;
+        }
+
+        toast.success(
+          "Account created! Please check your email for verification."
         );
-        return;
+      } else {
+        const result = await authClient.signIn.email({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (result.error) {
+          toast.error(
+            result.error.message || "Login failed. Please try again."
+          );
+          return;
+        }
+
+        toast.success("Welcome back to StudioSpace!");
+        router.push("/");
+        router.refresh();
       }
-
-      toast.success(
-        isRegister
-          ? "Your account has been created successfully!"
-          : "You have signed in successfully!"
-      );
-
-      router.push("/");
-      router.refresh();
     } catch (error) {
-      toast.error(
-        error.message || "Something went wrong. Please try again."
-      );
+      toast.error(error.message || "Something went wrong.");
     } finally {
       setIsLoading(false);
     }
@@ -116,6 +98,13 @@ export default function AuthForm({ mode }) {
         provider: "google",
         callbackURL: "http://localhost:3000/",
         errorCallbackURL: "http://localhost:3000/login",
+        ...(isRegister
+          ? {
+              additionalData: {
+                role: formData.role,
+              },
+            }
+          : {}),
       });
 
       if (result.error) {
@@ -133,260 +122,257 @@ export default function AuthForm({ mode }) {
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-gray-50 px-5 py-16 sm:px-8">
-      <div className="w-full max-w-md">
-        <div className="rounded-3xl border border-gray-100 bg-white p-7 shadow-sm sm:p-10">
-          <Link href="/" className="flex items-center justify-center gap-2">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600 text-white">
-              <Aperture size={26} />
-            </span>
+    <div className="min-h-screen bg-[#F8F8F5] px-4 py-12">
+      <div className="mx-auto grid min-h-[650px] max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl md:grid-cols-2">
+        <div className="flex flex-col justify-between bg-[#17251F] p-8 text-white md:p-12">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="rounded-xl bg-[#D5F36A] p-2 text-[#17251F]">
+              <Aperture size={25} />
+            </div>
 
-            <span className="text-2xl font-bold tracking-tight text-gray-900">
-              Studio<span className="text-violet-600">Space</span>
-            </span>
+            <span className="text-2xl font-bold">StudioSpace</span>
           </Link>
 
-          <div className="mt-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              {isRegister ? "Create Your Account" : "Welcome Back"}
+          <div className="my-12">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#D5F36A]">
+              Create. Connect. Collaborate.
+            </p>
+
+            <h1 className="mb-6 text-4xl font-bold leading-tight md:text-5xl">
+              {isRegister
+                ? "Find the space where creativity happens."
+                : "Welcome back to your creative space."}
             </h1>
 
-            <p className="mt-3 text-sm leading-6 text-gray-500">
+            <p className="max-w-md leading-7 text-gray-300">
               {isRegister
-                ? "Join StudioSpace and discover amazing creative spaces."
-                : "Sign in to continue your creative journey."}
+                ? "Join a community of creators and discover inspiring spaces for your next project."
+                : "Sign in to manage your bookings, explore studios, and continue creating."}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            {isRegister && (
+          <p className="text-sm text-gray-400">
+            Your creative journey starts here.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-center bg-white p-6 md:p-12">
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h2 className="mb-2 text-3xl font-bold text-[#17251F]">
+                {isRegister ? "Create an account" : "Welcome back"}
+              </h2>
+
+              <p className="text-gray-500">
+                {isRegister
+                  ? "Enter your details to join StudioSpace."
+                  : "Enter your details to access your account."}
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {isRegister && (
+                <>
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="mb-2 block text-sm font-medium text-gray-700"
+                    >
+                      Full name
+                    </label>
+
+                    <div className="relative">
+                      <User
+                        size={18}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                      />
+
+                      <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Enter your full name"
+                        autoComplete="name"
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="role"
+                      className="mb-2 block text-sm font-medium text-gray-700"
+                    >
+                      I want to join as
+                    </label>
+
+                    <select
+                      id="role"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 outline-none focus:border-[#17251F] dark:bg-white dark:text-gray-900"
+                    >
+                      <option value="customer">
+                        Customer — Find studios
+                      </option>
+                      <option value="host">
+                        Host — List my studio
+                      </option>
+                    </select>
+                  </div>
+                </>
+              )}
+
               <div>
                 <label
-                  htmlFor="name"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
+                  htmlFor="email"
+                  className="mb-2 block text-sm font-medium text-gray-700"
                 >
-                  Full Name
+                  Email address
                 </label>
 
                 <div className="relative">
-                  <User
-                    size={19}
+                  <Mail
+                    size={18}
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                   />
 
                   <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
                     onChange={handleChange}
-                    placeholder="Enter your full name"
+                    placeholder="you@example.com"
+                    autoComplete="email"
                     required
-                    autoComplete="name"
-                    className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className={inputClass}
                   />
                 </div>
               </div>
-            )}
 
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-sm font-semibold text-gray-700"
-              >
-                Email Address
-              </label>
-
-              <div className="relative">
-                <Mail
-                  size={19}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  required
-                  autoComplete="email"
-                  className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-2 block text-sm font-semibold text-gray-700"
-              >
-                Password
-              </label>
-
-              <div className="relative">
-                <Lock
-                  size={19}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  required
-                  minLength={6}
-                  autoComplete={
-                    isRegister ? "new-password" : "current-password"
-                  }
-                  className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((previous) => !previous)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-                >
-                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
-                </button>
-              </div>
-
-              {isRegister && (
-                <p className="mt-2 text-xs text-gray-500">
-                  At least 6 characters, including uppercase and lowercase
-                  letters.
-                </p>
-              )}
-            </div>
-
-            {isRegister && (
               <div>
                 <label
-                  htmlFor="confirmPassword"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-medium text-gray-700"
                 >
-                  Confirm Password
+                  Password
                 </label>
 
                 <div className="relative">
                   <Lock
-                    size={19}
+                    size={18}
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                   />
 
                   <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
                     onChange={handleChange}
-                    placeholder="Confirm your password"
+                    placeholder="Enter your password"
+                    autoComplete={
+                      isRegister ? "new-password" : "current-password"
+                    }
+                    minLength={6}
                     required
-                    autoComplete="new-password"
-                    className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-12 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className={`${inputClass} pr-12`}
                   />
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowConfirmPassword((previous) => !previous)
-                    }
-                    aria-label={
-                      showConfirmPassword
-                        ? "Hide confirm password"
-                        : "Show confirm password"
-                    }
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                    onClick={() => setShowPassword((previous) => !previous)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff size={19} />
+                    {showPassword ? (
+                      <EyeOff size={18} />
                     ) : (
-                      <Eye size={19} />
+                      <Eye size={18} />
                     )}
                   </button>
                 </div>
               </div>
-            )}
+
+              <button
+                type="submit"
+                disabled={isLoading || isGoogleLoading}
+                style={{
+                  backgroundColor: "#17251F",
+                  color: "#FFFFFF",
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-semibold transition hover:bg-[#293D32] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading
+                  ? "Please wait..."
+                  : isRegister
+                    ? "Create Account"
+                    : "Sign In"}
+
+                {!isLoading && <ArrowRight size={18} />}
+              </button>
+            </form>
+
+            <div className="my-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-sm text-gray-400">OR</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
 
             <button
-              type="submit"
-              disabled={isLoading || isGoogleLoading}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-violet-600 px-6 py-4 font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading || isLoading}
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3.5 font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoading
-                ? "Please wait..."
-                : isRegister
-                  ? "Create Account"
-                  : "Sign In"}
+              <svg
+                viewBox="0 0 48 48"
+                width="20"
+                height="20"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6C44.4 37.96 46.98 31.8 46.98 24.55z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
+              </svg>
 
-              {!isLoading && <ArrowRight size={18} />}
+              {isGoogleLoading
+                ? "Connecting to Google..."
+                : "Continue with Google"}
             </button>
-          </form>
 
-          <div className="relative my-7">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-
-            <div className="relative flex justify-center">
-              <span className="bg-white px-4 text-xs text-gray-500">
-                OR CONTINUE WITH
-              </span>
-            </div>
+            <p className="mt-8 text-center text-sm text-gray-500">
+              {isRegister
+                ? "Already have an account?"
+                : "Don't have an account?"}{" "}
+              <Link
+                href={isRegister ? "/login" : "/register"}
+                className="font-semibold text-[#17251F] hover:underline"
+              >
+                {isRegister ? "Sign in" : "Create account"}
+              </Link>
+            </p>
           </div>
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isLoading || isGoogleLoading}
-            className="flex w-full items-center justify-center gap-3 rounded-full border border-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
-              <path
-                fill="#4285F4"
-                d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11c-.5 2.5-1.9 4.6-4 6v5h6.5c3.8-3.5 6.1-8.6 6.1-14.7Z"
-              />
-              <path
-                fill="#34A853"
-                d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.5-5c-1.8 1.2-4.1 2-7 2-5.4 0-10-3.7-11.6-8.7H5.7v5.2C9.1 39.5 16 44 24 44Z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M12.4 27.5a12 12 0 0 1 0-7v-5.2H5.7a20 20 0 0 0 0 17.4l6.7-5.2Z"
-              />
-              <path
-                fill="#EA4335"
-                d="M24 11.8c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.8 29.5 4 24 4 16 4 9.1 8.5 5.7 15.3l6.7 5.2c1.6-5 6.2-8.7 11.6-8.7Z"
-              />
-            </svg>
-
-            {isGoogleLoading
-              ? "Connecting to Google..."
-              : "Continue with Google"}
-          </button>
-
-          <p className="mt-8 text-center text-sm text-gray-600">
-            {isRegister
-              ? "Already have an account?"
-              : "Don't have an account?"}{" "}
-            <Link
-              href={isRegister ? "/login" : "/register"}
-              className="font-bold text-violet-600 hover:text-violet-800"
-            >
-              {isRegister ? "Sign In" : "Create Account"}
-            </Link>
-          </p>
         </div>
-
-        <p className="mt-6 text-center text-xs text-gray-400">
-          By continuing, you agree to use StudioSpace responsibly.
-        </p>
       </div>
-    </main>
+    </div>
   );
 }
