@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -12,6 +13,16 @@ const nextConfig = {
       },
     ],
   },
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://studiospace-server-p01q.onrender.com/api/:path*",
+      },
+    ];
+  },
+
   turbopack: {
     rules: {
       "*.css": {
