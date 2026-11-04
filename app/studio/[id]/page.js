@@ -2,14 +2,12 @@
 import { notFound } from "next/navigation";
 import StudioDetails from "@/components/StudioDetails";
 
-const API_URL = "";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://studiospace-server-p01q.onrender.com";
 
 async function getStudio(id) {
   try {
-    if (!API_URL) {
-      throw new Error("API URL is not configured.");
-    }
-
     const response = await fetch(
       `${API_URL}/api/studios/${encodeURIComponent(id)}`,
       { cache: "no-store" }
