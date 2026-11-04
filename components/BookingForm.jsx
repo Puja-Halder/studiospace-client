@@ -32,9 +32,11 @@ export default function BookingForm({ studio }) {
 
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+
   const [minimumDateTime] = useState(() =>
     getLocalDateTime(new Date())
   );
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const pricePerHour = Number(studio?.pricePerHour || 0);
@@ -70,6 +72,18 @@ export default function BookingForm({ studio }) {
   const handleStartTimeChange = (event) => {
     setStartTime(event.target.value);
     setEndTime("");
+  };
+
+  const openDatePicker = (inputId) => {
+    const input = document.getElementById(inputId);
+
+    if (input && !input.disabled) {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.focus();
+      }
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -147,7 +161,7 @@ export default function BookingForm({ studio }) {
       router.refresh();
     } catch (error) {
       console.error("Booking submission error:", error);
-      toast.error(error.message || "Unable to submit your booking.");
+      toast.error(error.message || "Unable to submit the booking.");
     } finally {
       setIsSubmitting(false);
     }
@@ -184,56 +198,82 @@ export default function BookingForm({ studio }) {
     );
   }
 
+  const dateInputClass =
+    "w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-3 pr-11 text-sm text-gray-900 outline-none [color-scheme:light] focus:border-violet-600 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:hidden";
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label
           htmlFor="booking-start"
-          className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800"
+          className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200"
         >
           <CalendarDays size={17} className="text-violet-600" />
           Booking Start
         </label>
 
-        <input
-          id="booking-start"
-          type="datetime-local"
-          value={startTime}
-          min={minimumDateTime}
-          onChange={handleStartTimeChange}
-          required
-          className="w-full rounded-lg border border-gray-300 px-3 py-3 text-sm text-gray-900 outline-none focus:border-violet-600"
-        />
+        <div className="relative">
+          <input
+            id="booking-start"
+            type="datetime-local"
+            value={startTime}
+            min={minimumDateTime}
+            onChange={handleStartTimeChange}
+            required
+            className={dateInputClass}
+          />
+
+          <button
+            type="button"
+            onClick={() => openDatePicker("booking-start")}
+            aria-label="Open booking start date and time picker"
+            className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-violet-600 transition hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-gray-700"
+          >
+            <CalendarDays size={19} />
+          </button>
+        </div>
       </div>
 
       <div>
         <label
           htmlFor="booking-end"
-          className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800"
+          className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200"
         >
           <Clock size={17} className="text-violet-600" />
           Booking End
         </label>
 
-        <input
-          id="booking-end"
-          type="datetime-local"
-          value={endTime}
-          min={minimumEndTime}
-          onChange={(event) => setEndTime(event.target.value)}
-          disabled={!startTime}
-          required
-          className="w-full rounded-lg border border-gray-300 px-3 py-3 text-sm text-gray-900 outline-none focus:border-violet-600 disabled:cursor-not-allowed disabled:bg-gray-100"
-        />
+        <div className="relative">
+          <input
+            id="booking-end"
+            type="datetime-local"
+            value={endTime}
+            min={minimumEndTime}
+            onChange={(event) => setEndTime(event.target.value)}
+            disabled={!startTime}
+            required
+            className={`${dateInputClass} disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-700`}
+          />
+
+          <button
+            type="button"
+            onClick={() => openDatePicker("booking-end")}
+            disabled={!startTime}
+            aria-label="Open booking end date and time picker"
+            className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-violet-600 transition hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-violet-400 dark:hover:bg-gray-700"
+          >
+            <CalendarDays size={19} />
+          </button>
+        </div>
       </div>
 
-      <div className="rounded-xl bg-gray-50 p-4">
-        <div className="flex justify-between text-sm text-gray-600">
+      <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-800">
+        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
           <span>Hourly price</span>
           <span>৳{formatPrice(pricePerHour)}</span>
         </div>
 
-        <div className="mt-3 flex justify-between text-sm text-gray-600">
+        <div className="mt-3 flex justify-between text-sm text-gray-600 dark:text-gray-300">
           <span>Duration</span>
           <span>
             {totalHours >= 1
@@ -242,34 +282,34 @@ export default function BookingForm({ studio }) {
           </span>
         </div>
 
-        <div className="mt-3 flex justify-between text-sm text-gray-600">
+        <div className="mt-3 flex justify-between text-sm text-gray-600 dark:text-gray-300">
           <span>Rental cost</span>
           <span>৳{formatPrice(rentalPrice)}</span>
         </div>
 
-        <div className="mt-3 flex justify-between text-sm text-gray-600">
+        <div className="mt-3 flex justify-between text-sm text-gray-600 dark:text-gray-300">
           <span>Security deposit</span>
           <span>৳{formatPrice(securityDeposit)}</span>
         </div>
 
-        <p className="mt-2 text-xs leading-5 text-gray-500">
+        <p className="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">
           The security deposit is separate from the rental cost.
           Its return is subject to the agreed deposit policy.
         </p>
 
-        <div className="my-3 border-t border-gray-200" />
+        <div className="my-3 border-t border-gray-200 dark:border-gray-700" />
 
         <div className="flex items-center justify-between gap-3">
-          <span className="font-semibold text-gray-900">
+          <span className="font-semibold text-gray-900 dark:text-white">
             Estimated Amount Due
           </span>
 
-          <span className="text-xl font-bold text-violet-700">
+          <span className="text-xl font-bold text-violet-700 dark:text-violet-400">
             ৳{formatPrice(estimatedTotal)}
           </span>
         </div>
 
-        <p className="mt-2 text-xs leading-5 text-gray-500">
+        <p className="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">
           This is an estimate. The server calculates and verifies
           the final booking amount.
         </p>
