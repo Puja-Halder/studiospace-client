@@ -2,7 +2,7 @@
 import { notFound } from "next/navigation";
 import StudioDetails from "@/components/StudioDetails";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = "";
 
 async function getStudio(id) {
   try {

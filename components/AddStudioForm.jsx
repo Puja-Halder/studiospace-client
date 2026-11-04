@@ -173,7 +173,7 @@ export default function AddStudioForm() {
       console.log("Studio data before sending:", studioData);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/studios`,
+        `${""}/api/studios`,
         {
           method: "POST",
           headers: {

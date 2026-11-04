@@ -75,7 +75,7 @@ export default function MyListings() {
         setError("");
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/studios/mine`,
+          `${""}/api/studios/mine`,
           {
             method: "GET",
             credentials: "include",
@@ -183,7 +183,7 @@ export default function MyListings() {
       setSaving(true);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/studios/${editingStudio._id}`,
+        `${""}/api/studios/${editingStudio._id}`,
         {
           method: "PATCH",
           credentials: "include",
@@ -233,7 +233,7 @@ export default function MyListings() {
       setDeleting(true);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/studios/${deletingStudio._id}`,
+        `${""}/api/studios/${deletingStudio._id}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -266,7 +266,7 @@ export default function MyListings() {
       setReactivatingStudioId(studio._id);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/studios/${studio._id}/reactivate`,
+        `${""}/api/studios/${studio._id}/reactivate`,
         {
           method: "PATCH",
           credentials: "include",
@@ -302,7 +302,7 @@ export default function MyListings() {
       setPermanentDeleting(true);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/studios/${permanentDeletingStudio._id}/permanent`,
+        `${""}/api/studios/${permanentDeletingStudio._id}/permanent`,
         {
           method: "DELETE",
           credentials: "include",

@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import categories from "@/data/categories.json";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = "";
 
 const categoryNames = Object.fromEntries(
   categories.map((category) => [category.id, category.name])

@@ -22,7 +22,7 @@ export default function FeaturedStudios() {
     const fetchFeaturedStudios = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/studios?limit=6`
+          `${""}/api/studios?limit=6`
         );
 
         const result = await response.json();
