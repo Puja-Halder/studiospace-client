@@ -17,33 +17,92 @@ export default function FeaturedStudios() {
   const [studios, setStudios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchFeaturedStudios = async () => {
-      try {
-        const response = await fetch(
-          `${""}/api/studios?limit=6`
-        );
+      setLoading(true);
+      setError("");
 
-        const result = await response.json();
+      const maxRetries = 2;
 
-        if (!response.ok) {
-          throw new Error(
-            result.message || "Failed to load featured studios."
-          );
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const response = await fetch("/api/studios?limit=6", {
+            cache: "no-store",
+          });
+
+          const contentType = response.headers.get("content-type") || "";
+          const responseText = await response.text();
+
+          if (!contentType.includes("application/json")) {
+            throw new Error(
+              response.status >= 500
+                ? "The server is temporarily unavailable. Please try again."
+                : "The server returned an unexpected response."
+            );
+          }
+
+          let result;
+
+          try {
+            result = JSON.parse(responseText);
+          } catch {
+            throw new Error("The server returned an invalid response.");
+          }
+
+          if (!response.ok || !result.success) {
+            throw new Error(
+              result.message || "Failed to load featured studios."
+            );
+          }
+
+          if (!Array.isArray(result.data)) {
+            throw new Error("Invalid studio data received from the server.");
+          }
+
+          if (isMounted) {
+            setStudios(result.data);
+            setError("");
+          }
+
+          return;
+        } catch (err) {
+          if (attempt < maxRetries) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1500 * (attempt + 1))
+            );
+          } else if (isMounted) {
+            const message =
+              err.message || "Failed to load featured studios.";
+
+            setError(message);
+            toast.error(message);
+          }
         }
+      }
 
-        setStudios(result.data || []);
-      } catch (error) {
-        setError(error.message);
-        toast.error(error.message);
-      } finally {
+      if (isMounted) {
         setLoading(false);
       }
     };
 
-    fetchFeaturedStudios();
-  }, []);
+    fetchFeaturedStudios().finally(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [retryCount]);
+
+  const handleRetry = () => {
+    setRetryCount((previous) => previous + 1);
+  };
 
   return (
     <section className="bg-background px-4 py-16 sm:px-6 lg:px-8">
@@ -85,9 +144,10 @@ export default function FeaturedStudios() {
         ) : error ? (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-center">
             <p className="font-medium text-destructive">{error}</p>
+
             <button
               type="button"
-              onClick={() => window.location.reload()}
+              onClick={handleRetry}
               className="mt-4 rounded-lg bg-primary px-5 py-2 text-primary-foreground"
             >
               Try Again
